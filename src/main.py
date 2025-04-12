@@ -1,3 +1,4 @@
 import player_interface
 
-player_interface.PlayerInterface()
+if __name__ == "__main__":
+    player_interface.PlayerInterface()
