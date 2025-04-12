@@ -85,11 +85,7 @@ class PlayerInterface:
 
         self._create_side_frame(self.game_frame)
 
-        # Parte central (temporária)
-        #content = tk.Frame(self.game_frame, bg=self._bg_color)
-        #content.pack(side="right", fill="both", expand=True)
-
-
+        self._create_game_main_frame(self.game_frame)
 
     def _create_side_frame(self, game_frame):
         self._side_frame = tk.Frame(game_frame, height=1024, width=295, bg=self._side_color)
@@ -153,6 +149,65 @@ class PlayerInterface:
         )
         player_turn_label.place(x=0, y=853, width=295, height=33)
 
+    def _create_game_main_frame(self, game_frame):
+        self._create_player_icons(game_frame)   # Missing Nicknames
+        self._create_deck_of_cards(game_frame)
+        self._create_discard_pile(game_frame)
+
+    def _create_player_icons(self, game_frame):
+        img = Image.open("assets/others/player.png") 
+        img = img.resize((106, 139))
+        self.player_icon = ImageTk.PhotoImage(img)
+        
+        # Remote players
+        player_icon_label_1 = tk.Label(self.game_frame, image=self.player_icon, bg=self._bg_color)
+        player_icon_label_1.place(x=323, y=70)
+
+        player_icon_label_2 = tk.Label(self.game_frame, image=self.player_icon, bg=self._bg_color)
+        player_icon_label_2.place(x=1276, y=70)
+
+        # Local player
+        img = img.resize((138, 181))
+        self.player_icon_3 = ImageTk.PhotoImage(img)
+        player_icon_label_3 = tk.Label(self.game_frame, image=self.player_icon_3, bg=self._bg_color)
+        player_icon_label_3.place(x=1184, y=715)
+
+    def _create_deck_of_cards(self, game_frame):
+        img = Image.open("assets/others/deck-of-cards.png") 
+        img = img.resize((216, 234))
+        self.deck = ImageTk.PhotoImage(img)
+        deck_btn = tk.Button(
+            game_frame,
+            image=self.deck,
+            bd=0,
+            bg=self._bg_color,
+            activebackground=self._bg_color,
+            highlightthickness=0,
+            command=self._any_function
+        )
+        deck_btn.place(x=436, y=391)
+
+    def _create_discard_pile(self, game_frame):
+        img = Image.open("assets/others/discard-pile-default.png") 
+        img = img.resize((135, 190))
+        self.discard_pile = ImageTk.PhotoImage(img)
+        discard_pile_btn = tk.Button(
+            game_frame,
+            image=self.discard_pile,
+            bd=0,
+            bg=self._bg_color,
+            activebackground=self._bg_color,
+            highlightthickness=0,
+            command=self._any_function
+        )
+        discard_pile_btn.place(x=1092, y=422)
+
+        img = Image.open("assets/others/trash-can.png") 
+        img = img.resize((49, 51))
+        self.trash_can = ImageTk.PhotoImage(img)
+        trash_can_label = tk.Label(game_frame, image=self.trash_can, bg=self._bg_color)
+        trash_can_label.place(x=1230, y=480)
+
     def _clear_placeholder(self, event):
         if self.nickname_entry.get() == "Nickname":
             self.nickname_entry.delete(0, tk.END)
@@ -170,6 +225,9 @@ class PlayerInterface:
             return
         # Simula confirmação do servidor
         self._init_game_frame(nickname)
+
+    def _any_function(self):
+        print("oi")
 
 if __name__ == "__main__":
     PlayerInterface()
