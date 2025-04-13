@@ -10,32 +10,32 @@ class PlayerInterface:
         self._side_color = "#B7C3AD"        # very light grayish green
         self._secondary_color = "#DBE0D2"   # ice white
 
-        self.window = tk.Tk()
-        self.window.title("Golf")
-        self.window.geometry("1440x1024")
-        self.window.resizable(False, False)
-        self.window.configure(bg=self._bg_color)
+        self._window = tk.Tk()
+        self._window.title("Golf")
+        self._window.geometry("1440x1024")
+        self._window.resizable(False, False)
+        self._window.configure(bg=self._bg_color)
 
-        self.login_frame = None
-        self.game_frame = None
+        self._login_frame = None
+        self._game_frame = None
 
-        self._init_login_frame()
-        self.window.mainloop()
+        self._init__login_frame()
+        self._window.mainloop()
 
-    def _init_login_frame(self):
-        self.login_frame = tk.Frame(self.window, bg=self._primary_color)
-        self.login_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.window.update()
+    def _init__login_frame(self):
+        self._login_frame = tk.Frame(self._window, bg=self._primary_color)
+        self._login_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self._window.update()
 
         # Logo
         img = Image.open("assets/others/logo.png") 
         img = img.resize((500, 633))
         self.logo_img = ImageTk.PhotoImage(img)
-        logo_label = tk.Label(self.login_frame, image=self.logo_img, bg=self._primary_color)
+        logo_label = tk.Label(self._login_frame, image=self.logo_img, bg=self._primary_color)
         logo_label.place(x=220, y=195)
 
         # Input field and button
-        right_frame = tk.Frame(self.login_frame, bg=self._primary_color)
+        right_frame = tk.Frame(self._login_frame, bg=self._primary_color)
         right_frame.place(x=868, y=412)
 
         self.nickname_entry = tk.Entry(
@@ -75,27 +75,27 @@ class PlayerInterface:
         )
         start_btn.pack(pady=10)
 
-    def _init_game_frame(self, nickname):
+    def _init__game_frame(self, nickname):
         # Destroy login
-        if self.login_frame:
-            self.login_frame.destroy()
+        if self._login_frame:
+            self._login_frame.destroy()
 
-        self.game_frame = tk.Frame(self.window, bg=self._bg_color)
-        self.game_frame.place(x=0, y=0, width=1440, height=1024)
+        self._game_frame = tk.Frame(self._window, bg=self._bg_color)
+        self._game_frame.place(x=0, y=0, width=1440, height=1024)
 
-        self._create_side_frame(self.game_frame)
+        self._create_side_frame(self._game_frame)
 
-        self._create_game_main_frame(self.game_frame)
+        self._create_game_main_frame(self._game_frame)
 
-        self._create_local_player_board(self.game_frame)
+        self._create_local_player_board(self._game_frame)
 
-    def _create_side_frame(self, game_frame):
-        self._side_frame = tk.Frame(game_frame, height=1024, width=295, bg=self._side_color)
-        self._side_frame.place(x=0, y=0)
-        self._create_logo(self._side_frame)
-        self._create_round_label(0, self._side_frame)
-        self._create_players_label(3, self._side_frame)
-        self._create_player_turn_label(1, self._side_frame)
+    def _create_side_frame(self, _game_frame):
+        _side_frame = tk.Frame(_game_frame, height=1024, width=295, bg=self._side_color)
+        _side_frame.place(x=0, y=0)
+        self._create_logo(_side_frame)
+        self._create_round_label(0, _side_frame)
+        self._create_players_label(3, _side_frame)
+        self._create_player_turn_label(1, _side_frame)
 
     def _create_logo(self, _side_frame):
         self._logo_img = tk.PhotoImage(file="assets/others/logo.png")
@@ -151,70 +151,70 @@ class PlayerInterface:
         )
         player_turn_label.place(x=0, y=853, width=295, height=33)
 
-    def _create_game_main_frame(self, game_frame):
-        self._create_player_icons(game_frame)   # Missing Nicknames
-        self._create_deck_of_cards(game_frame)
-        self._create_discard_pile(game_frame)
-        self._create_remote_player_boards(game_frame)
+    def _create_game_main_frame(self, _game_frame):
+        self._create_player_icons(_game_frame)   # Missing Nicknames
+        self._create_deck_of_cards(_game_frame)
+        self._create_discard_pile(_game_frame)
+        self._create_remote_player_boards(_game_frame)
 
-    def _create_player_icons(self, game_frame):
+    def _create_player_icons(self, _game_frame):
         img = Image.open("assets/others/player.png") 
         img = img.resize((106, 139))
         self.player_icon = ImageTk.PhotoImage(img)
         
         # Remote players
-        player_icon_label_1 = tk.Label(self.game_frame, image=self.player_icon, bg=self._bg_color)
+        player_icon_label_1 = tk.Label(self._game_frame, image=self.player_icon, bg=self._bg_color)
         player_icon_label_1.place(x=323, y=70)
 
-        player_icon_label_2 = tk.Label(self.game_frame, image=self.player_icon, bg=self._bg_color)
+        player_icon_label_2 = tk.Label(self._game_frame, image=self.player_icon, bg=self._bg_color)
         player_icon_label_2.place(x=1276, y=70)
 
         # Local player
         img = img.resize((138, 181))
         self.player_icon_3 = ImageTk.PhotoImage(img)
-        player_icon_label_3 = tk.Label(self.game_frame, image=self.player_icon_3, bg=self._bg_color)
+        player_icon_label_3 = tk.Label(self._game_frame, image=self.player_icon_3, bg=self._bg_color)
         player_icon_label_3.place(x=1184, y=715)
 
-    def _create_deck_of_cards(self, game_frame):
+    def _create_deck_of_cards(self, _game_frame):
         img = Image.open("assets/others/deck-of-cards.png") 
         img = img.resize((216, 234))
         self.deck = ImageTk.PhotoImage(img)
         deck_btn = tk.Button(
-            game_frame,
+            _game_frame,
             image=self.deck,
             bd=0,
             bg=self._bg_color,
             activebackground=self._bg_color,
             highlightthickness=0,
-            command=self._any_function
+            command=self._click_deck
         )
         deck_btn.place(x=436, y=391)
 
-    def _create_discard_pile(self, game_frame):
+    def _create_discard_pile(self, _game_frame):
         img = Image.open("assets/others/discard-pile-default.png") 
         img = img.resize((135, 190))
         self.discard_pile = ImageTk.PhotoImage(img)
         discard_pile_btn = tk.Button(
-            game_frame,
+            _game_frame,
             image=self.discard_pile,
             bd=0,
             bg=self._bg_color,
             activebackground=self._bg_color,
             highlightthickness=0,
-            command=self._any_function
+            command=self._click_discard
         )
         discard_pile_btn.place(x=1092, y=422)
 
         img = Image.open("assets/others/trash-can.png") 
         img = img.resize((49, 51))
         self.trash_can = ImageTk.PhotoImage(img)
-        trash_can_label = tk.Label(game_frame, image=self.trash_can, bg=self._bg_color)
+        trash_can_label = tk.Label(_game_frame, image=self.trash_can, bg=self._bg_color)
         trash_can_label.place(x=1230, y=480)
 
-    def _create_remote_player_boards(self, game_frame):
+    def _create_remote_player_boards(self, _game_frame):
         # Frame for the first remote player (top left)
         remote_board_1 = tk.Frame(
-            game_frame,
+            _game_frame,
             bg=self._bg_color,
             padx=0,
             pady=0,
@@ -225,7 +225,7 @@ class PlayerInterface:
         
         # Frame for the second remote player (top right)
         remote_board_2 = tk.Frame(
-            game_frame,
+            _game_frame,
             bg=self._bg_color,
             padx=0,
             pady=0,
@@ -270,15 +270,12 @@ class PlayerInterface:
             messagebox.showerror("Error", "Please enter a valid nickname.")
             return
         # Simulate server confirmation
-        self._init_game_frame(nickname)
+        self._init__game_frame(nickname)
 
-    def _any_function(self):
-        print("oi")
-
-    def _create_local_player_board(self, game_frame):
+    def _create_local_player_board(self, _game_frame):
         # Main frame for local player board
         local_board = tk.Frame(
-            game_frame,
+            _game_frame,
             bg=self._bg_color,
             padx=0,
             pady=0,
@@ -324,6 +321,12 @@ class PlayerInterface:
     def _on_card_click(self, card_index):
         print(f"Card {card_index+1} clicked")
         # Here you can implement the logic to flip the card
+
+    def _on_discard_click(self):
+        print("discard pile clicked")
+
+    def _on_deck_click(self):
+        print("draw pile clicked!")
 
 if __name__ == "__main__":
     PlayerInterface()
