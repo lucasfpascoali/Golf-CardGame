@@ -7,3 +7,13 @@ Desenvolvido pelos alunos do curso de Ciência da Computação:
 Juliana Miranda Bosio
 Lucas Furlanetto Pascoali
 Vinícios Rosa Buzzi
+
+# Para rodar
+
+Dentro da pasta do projeto Golf, execute:
+Crie o venv usando: `python3 -m venv venv`
+Entre no venv: `source venv/bin/activate`
+Instale as dependências: `pip install -r requirements.txt`
+Entre na pasta src: `cd src/`
+Rode o programa: `python3 main.py`
+
