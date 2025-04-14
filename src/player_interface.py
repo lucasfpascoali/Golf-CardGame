@@ -33,7 +33,7 @@ class PlayerInterface:
         self._game_logo_img: PhotoImage = None
         self._remote_player_icon: PhotoImage = None
         self._local_player_icon: PhotoImage = None
-        self._deck: PhotoImage = None
+        self._deck_img: PhotoImage = None
         self._discard_pile_img: PhotoImage = None
         self._trash_can_img: PhotoImage = None
         self._card_back_img: PhotoImage = None
@@ -49,6 +49,7 @@ class PlayerInterface:
         self._player_turn_label: Label = None
         self._trash_can_label: Label = None
         self._remote_player_card_labels: list[list[list[Label]]] = []
+        
         # Button
         self._start_btn: Button = None
         self._deck_btn: Button = None
@@ -213,10 +214,10 @@ class PlayerInterface:
     def _create_deck_of_cards(self):
         img = Image.open("assets/others/deck-of-cards.png") 
         img = img.resize((216, 234))
-        self._deck = ImageTk.PhotoImage(img)
+        self._deck_img = ImageTk.PhotoImage(img)
         self._deck_btn = Button(
             self._game_frame,
-            image=self._deck,
+            image=self._deck_img,
             bd=0,
             bg=self._bg_color,
             activebackground=self._bg_color,
