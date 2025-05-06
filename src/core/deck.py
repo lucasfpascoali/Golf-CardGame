@@ -1,10 +1,20 @@
-from card import Card
+from core.card import Card
+from core.suit import Suit
 import random
 
 class Deck:
     def __init__(self):
-        self._cards: list[Card] = self._get_default_deck()
+        self._cards: list[Card] = []
+
+    def load_default_deck(self) -> None:
+        self._cards = self._get_default_deck()
         self._shuffle()
+
+    def load_deck(self, cards: list[Card]) -> None:
+        self._cards = cards
+
+    def get_current_deck(self) -> list[Card]:
+        return self._cards
 
     def draw_card(self) -> Card:
         if len(self._cards) == 0:
@@ -27,7 +37,7 @@ class Deck:
         return cards
 
     def _get_default_deck(self) -> list[Card]:
-        suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
+        suits = [Suit.CLUBS, Suit.DIAMONDS, Suit.HEARTS, Suit.SPADES]
         values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
         for suit in suits:
             for value in values:

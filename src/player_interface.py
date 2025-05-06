@@ -1,8 +1,16 @@
 from tkinter import messagebox, Tk, PhotoImage, Label, Frame, Entry, Button, END
 from PIL import Image, ImageTk
+from dog.dog_interface import DogPlayerInterface
+from dog.dog_actor import DogActor
+from dog.start_status import StartStatus
+from core.match import Match
+from core.board import Board
 
-class PlayerInterface:
+class PlayerInterface(DogPlayerInterface):
     def __init__(self):
+        # Problem domain
+        self._match: Match = None
+
         # Colors
         self._bg_color = "#0F3F27"          # dark green
         self._primary_color = "#5CA35F"     # bright green
@@ -17,10 +25,11 @@ class PlayerInterface:
 
         # Frames
         self._login_frame: Frame = None
+        self._waiting_frame: Frame = None
         self._game_frame: Frame = None
         self._side_frame: Frame = None
         self._right_frame: Frame = None
-        self._remote_players_boards : list[Frame] = []
+        self._remote_players_board_frames : list[Frame] = []
         self._local_player_board: Frame = None
         self._local_player_cards_frame: Frame = None
 
@@ -36,7 +45,14 @@ class PlayerInterface:
         self._deck_img: PhotoImage = None
         self._discard_pile_img: PhotoImage = None
         self._trash_can_img: PhotoImage = None
-        self._card_back_img: PhotoImage = None
+        img = Image.open("assets/cards/back.png")
+        img_local = img.resize((125, 196))
+        img_remote = img.resize((90, 141))
+        self._local_player_card_back_img: PhotoImage = ImageTk.PhotoImage(img_local)
+        self._remote_player_card_back_img: PhotoImage = ImageTk.PhotoImage(img_remote)
+        self._local_player_board_card_imgs: list[list[PhotoImage]] = []
+        self._remote_players_board_card_imgs: list[list[list[PhotoImage]]] = [[], []]
+        
 
         # Labels
         self._login_logo_label: Label = None
@@ -48,7 +64,7 @@ class PlayerInterface:
         self._turn_text_label: Label = None
         self._player_turn_label: Label = None
         self._trash_can_label: Label = None
-        self._remote_player_card_labels: list[list[list[Label]]] = []
+        self._remote_player_card_labels: list[list[list[Label]]] = [[], []]
         
         # Button
         self._start_btn: Button = None
@@ -57,7 +73,18 @@ class PlayerInterface:
         self._local_player_card_btn : list[list[Button]] = []
 
         self._init_login_frame()
+
+        self.dog_server_interface = DogActor()
+
         self._window.mainloop()
+
+    # def load_card_images(self):
+    #     valores = list(map(str, range(2, 11))) + ["A", "J", "Q", "K"]
+    #     naipes  = ["CLUBS", "DIAMONDS", "HEARTS", "SPADES"]
+    #     ids = [f"{valor}_{naipe}" for valor in valores for naipe in naipes]
+
+    #     self._card_faces_imgs: dict[str, ] = {}
+
 
     def _init_login_frame(self):
         self._login_frame = Frame(self._window, bg=self._primary_color)
@@ -107,11 +134,28 @@ class PlayerInterface:
             bg=self._primary_color,
             activebackground=self._primary_color,
             highlightthickness=0,
-            command=self._validate_and_start_game
+            command=self.start_match
         )
         self._start_btn.pack(pady=10)
 
-    def _init_game_frame(self, _):
+    def _init_waiting_frame(self):
+        self._waiting_frame = Frame(self._window, bg=self._primary_color)
+        self._waiting_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self._window.update()
+
+        waiting_label = Label(
+            self._waiting_frame,
+            text="Waiting for players. The match will start when the third player connects.",
+            bg=self._primary_color,
+            fg="white",
+            font=("Helvetica", 16, "bold"),
+            wraplength=800,
+            justify="center"
+        )
+        waiting_label.place(relx=0.5, rely=0.5, anchor="center")
+
+
+    def _init_game_frame(self):
         # Destroy login
         if self._login_frame:
             self._login_frame.destroy()
@@ -188,7 +232,7 @@ class PlayerInterface:
         self._player_turn_label.place(x=0, y=853, width=295, height=33)
 
     def _create_game_main_frame(self):
-        self._create_player_icons()   # Missing Nicknames
+        self._create_player_icons()
         self._create_deck_of_cards()
         self._create_discard_pile()
         self._create_remote_player_boards()
@@ -249,7 +293,7 @@ class PlayerInterface:
 
     def _create_remote_player_boards(self):
         # Frame for the first remote player (top left)
-        self._remote_players_boards.append(Frame(
+        self._remote_players_board_frames.append(Frame(
             self._game_frame,
             bg=self._bg_color,
             padx=0,
@@ -257,10 +301,10 @@ class PlayerInterface:
             bd=0,
             highlightthickness=0
         ))
-        self._remote_players_boards[0].place(x=450, y=50, width=310, height=310)
+        self._remote_players_board_frames[0].place(x=450, y=50, width=310, height=310)
         
         # Frame for the second remote player (top right)
-        self._remote_players_boards.append(Frame(
+        self._remote_players_board_frames.append(Frame(
             self._game_frame,
             bg=self._bg_color,
             padx=0,
@@ -268,26 +312,34 @@ class PlayerInterface:
             bd=0,
             highlightthickness=0
         ))
-        self._remote_players_boards[1].place(x=950, y=50, width=310, height=310)
+        self._remote_players_board_frames[1].place(x=950, y=50, width=310, height=310)
         
+        remote_players_boards = self._match.get_remote_players_boards()
         # Add face-down cards for each remote board (images only)
-        for i, remote_board in enumerate(self._remote_players_boards):
-            self._add_remote_player_cards(remote_board, i)
+        for i in range(len(self._remote_players_board_frames)):
+            self._set_remote_player_cards(i, remote_players_boards[i])
 
-    def _add_remote_player_cards(self, parent_frame, player_index, card_size=(90, 141)):
-        img = Image.open("assets/cards/back.png")
-        img = img.resize(card_size)
-        # Use a different variable for each player
-        setattr(self, f"remote_card_back_img_{player_index}", ImageTk.PhotoImage(img))
-    
+    def _set_remote_player_cards(self, player_index, remote_player_board: Board):
         # Create 2x3 grid of cards (images only)
-        self._remote_player_card_labels.append([])
+        self._remote_player_card_labels[player_index] = []
+        self._remote_players_board_card_imgs[player_index] = []
         for row in range(2):
             self._remote_player_card_labels[player_index].append([])
+            self._remote_players_board_card_imgs[player_index].append([])
             for col in range(3):
+                card = remote_player_board.get_card_in_position(row, col)
+                card_id = card.get_id()
+                img = Image.open(f"assets/cards/{card_id}.png")
+                img = img.resize((90, 141))
+                img = ImageTk.PhotoImage(img)
+                if not card.is_face_up():
+                    img = self._remote_player_card_back_img
+
+                self._remote_players_board_card_imgs[player_index][row].append(img)
+
                 self._remote_player_card_labels[player_index][row].append(Label(
-                    parent_frame,
-                    image=getattr(self, f"remote_card_back_img_{player_index}"),
+                    self._remote_players_board_frames[player_index],
+                    image=self._remote_players_board_card_imgs[player_index][row][col],
                     bg=self._bg_color
                 ))
                 self._remote_player_card_labels[player_index][row][col].grid(row=row, column=col, padx=5, pady=5)
@@ -302,16 +354,49 @@ class PlayerInterface:
             self._nickname_entry.insert(0, "Nickname")
             self._nickname_entry.config(fg="#A9A9A9")
 
-    def _validate_and_start_game(self):
+    def start_match(self):
         nickname = self._nickname_entry.get().strip()
         if not nickname or nickname == "Nickname":
             messagebox.showerror("Error", "Please enter a valid nickname.")
             return
-        # Simulate server confirmation
-        self._init_game_frame(nickname)
+        
+        message = self.dog_server_interface.initialize(nickname, self)
+        messagebox.showinfo(message=message)
+        if message != "Conectado a Dog Server":
+            return
+        
+        start_status = self.dog_server_interface.start_match(3)
+        message = start_status.get_message()
+        messagebox.showinfo(message=message)
+        if start_status.get_code() == '0':
+            self._window.quit()
+
+        if start_status.get_code() == '1':
+            self._init_waiting_frame()
+            return
+        
+        self._match = Match(start_status.get_players(), start_status.get_local_id())
+        self._match.start_match()
+
+        self._init_game_frame()
+
+    # def update_game_frame(self):
+
+
+    def receive_start(self, start_status: StartStatus):
+        if self._match != None:
+            return
+        
+        if start_status.get_code() != '2':
+            messagebox.showerror("Failed to start match")
+            self._window.quit()
+        
+        
+        print(start_status.get_local_id())
+        print(start_status.get_players())
 
     def _create_local_player_board(self):
-        # Main frame for local player board
+        # Frame for local player board
         self._local_player_board = Frame(
             self._game_frame,
             bg=self._bg_color,
@@ -332,20 +417,31 @@ class PlayerInterface:
         self._local_player_cards_frame.pack(expand=False)
         
         # Add face-down cards (back cards)
-        self._add_back_cards(self._local_player_cards_frame)
+        self._set_local_player_cards()
         
-    def _add_back_cards(self, parent_frame, card_size=(125, 196), clickable=True):
-        img = Image.open("assets/cards/back.png")
-        img = img.resize(card_size)
-        self._card_back_img = ImageTk.PhotoImage(img)
-        
-        # Create 2x3 grid of cards
+    def _set_local_player_cards(self):
+        self._local_player_board_card_imgs = []
+        self._local_player_card_btn = []
+
+        local_player_board = self._match.get_local_player_board()        
         for row in range(2):
             self._local_player_card_btn.append([])
+            self._local_player_board_card_imgs.append([])
             for col in range(3):
+                card = local_player_board.get_card_in_position(row, col)
+                card_id = card.get_id()
+                
+                img = Image.open(f"assets/cards/{card_id}.png")
+                img = img.resize((125, 196))
+                img = ImageTk.PhotoImage(img)
+                if not card.is_face_up():
+                    img = self._local_player_card_back_img
+                
+                self._local_player_board_card_imgs[row].append(img)
+
                 self._local_player_card_btn[row].append(Button(
-                    parent_frame,
-                    image=self._card_back_img,
+                    self._local_player_cards_frame,
+                    image=self._local_player_board_card_imgs[row][col],
                     bg=self._bg_color,
                     bd=0,
                     highlightthickness=0,
@@ -353,13 +449,10 @@ class PlayerInterface:
                 ))
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
                 
-                # Add click event only if cards are clickable
-                if clickable:
-                    card_index = row * 3 + col  # Calculate index based on position
-                    self._local_player_card_btn[row][col].bind("<Button-1>", lambda _, idx=card_index: self._on_card_click(idx))
-                
-    def _on_card_click(self, card_index):
-        print(f"Card {card_index+1} clicked")
+                self._local_player_card_btn[row][col].bind("<Button-1>", lambda _, idx=card_id: self._on_card_click(idx))
+
+    def _on_card_click(self, card_id):
+        print(f"Card {card_id} clicked")
 
     def _on_discard_click(self):
         print("discard pile clicked")
