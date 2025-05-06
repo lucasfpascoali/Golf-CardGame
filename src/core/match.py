@@ -15,7 +15,10 @@ class Match:
             raise RuntimeError("Match is already running.")
         
         self._is_running = True
-        self._current_round = Round(1)
+        self.start_round(1)
+
+    def start_round(self, round_number: int):        
+        self._current_round = Round(round_number)
         self._current_round.start_round(self._players)
 
     def get_local_player(self) -> Player:

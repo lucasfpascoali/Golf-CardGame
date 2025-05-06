@@ -29,6 +29,9 @@ class Round:
     def get_round_number(self) -> int:
         return self._round_number
     
+    def get_discard_pile(self) -> Card:
+        return self._discard_pile
+    
     def get_board_by_player_id(self, player_id: str) -> Board:
         for board in self._boards:
             if board.get_player().get_id() == player_id:

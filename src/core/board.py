@@ -51,8 +51,6 @@ class Board:
         positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
         return random.sample(positions, 2)
 
-
-    
     def _set_card_in_position(self, card: Card, row: int, column: int) -> None:
         if self._matrix[row][column] is not None:
             self._hand = self._matrix[row][column]

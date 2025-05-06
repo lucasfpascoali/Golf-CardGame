@@ -271,7 +271,17 @@ class PlayerInterface(DogPlayerInterface):
         self._deck_btn.place(x=436, y=391)
 
     def _create_discard_pile(self):
-        img = Image.open("assets/others/discard-pile-default.png") 
+        
+
+        img = Image.open("assets/others/trash-can.png") 
+        img = img.resize((49, 51))
+        self._trash_can_img = ImageTk.PhotoImage(img)
+        self._trash_can_label = Label(self._game_frame, image=self._trash_can_img, bg=self._bg_color)
+        self._trash_can_label.place(x=1230, y=480)
+
+    def _set_discard_pile_img(self):
+        card_id = self._match.get_current_round().get_discard_pile().get_id()
+        img = Image.open(f"assets/cards/{card_id}.png") 
         img = img.resize((135, 190))
         self._discard_pile_img = ImageTk.PhotoImage(img)
         self._discard_pile_btn = Button(
@@ -284,12 +294,6 @@ class PlayerInterface(DogPlayerInterface):
             command=self._on_discard_click
         )
         self._discard_pile_btn.place(x=1092, y=422)
-
-        img = Image.open("assets/others/trash-can.png") 
-        img = img.resize((49, 51))
-        self._trash_can_img = ImageTk.PhotoImage(img)
-        self._trash_can_label = Label(self._game_frame, image=self._trash_can_img, bg=self._bg_color)
-        self._trash_can_label.place(x=1230, y=480)
 
     def _create_remote_player_boards(self):
         # Frame for the first remote player (top left)
@@ -379,9 +383,6 @@ class PlayerInterface(DogPlayerInterface):
         self._match.start_match()
 
         self._init_game_frame()
-
-    # def update_game_frame(self):
-
 
     def receive_start(self, start_status: StartStatus):
         if self._match != None:
