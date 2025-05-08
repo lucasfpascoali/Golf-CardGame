@@ -1,4 +1,4 @@
-from tkinter import messagebox, Tk, PhotoImage, Label, Frame, Entry, Button, END
+from tkinter import messagebox, Tk, PhotoImage, Label, Frame, Button, END, simpledialog
 from PIL import Image, ImageTk
 from dog.dog_interface import DogPlayerInterface
 from dog.dog_actor import DogActor
@@ -25,16 +25,12 @@ class PlayerInterface(DogPlayerInterface):
 
         # Frames
         self._login_frame: Frame = None
-        self._waiting_frame: Frame = None
         self._game_frame: Frame = None
         self._side_frame: Frame = None
         self._right_frame: Frame = None
         self._remote_players_board_frames : list[Frame] = []
         self._local_player_board: Frame = None
         self._local_player_cards_frame: Frame = None
-
-        # Entry
-        self._nickname_entry: Entry = None
 
         # PhotoImages
         self._login_logo_img: PhotoImage = None
@@ -74,17 +70,17 @@ class PlayerInterface(DogPlayerInterface):
 
         self._init_login_frame()
 
+        nickname = simpledialog.askstring(title="Nickname", prompt="Enter your nickname:")
+
         self.dog_server_interface = DogActor()
 
+        message = self.dog_server_interface.initialize(nickname, self)
+        messagebox.showinfo(message=message)
+        if message != "Conectado a Dog Server":
+            self._window.quit()
+            return
+
         self._window.mainloop()
-
-    # def load_card_images(self):
-    #     valores = list(map(str, range(2, 11))) + ["A", "J", "Q", "K"]
-    #     naipes  = ["CLUBS", "DIAMONDS", "HEARTS", "SPADES"]
-    #     ids = [f"{valor}_{naipe}" for valor in valores for naipe in naipes]
-
-    #     self._card_faces_imgs: dict[str, ] = {}
-
 
     def _init_login_frame(self):
         self._login_frame = Frame(self._window, bg=self._primary_color)
@@ -102,22 +98,6 @@ class PlayerInterface(DogPlayerInterface):
         self._right_frame = Frame(self._login_frame, bg=self._primary_color)
         self._right_frame.place(x=868, y=412)
 
-        self._nickname_entry = Entry(
-            self._right_frame,
-            font=("Helvetica", 16),
-            width=20,
-            justify="center",
-            bd=0,
-            bg=self._secondary_color,
-            fg=self._side_color
-        )
-        self._nickname_entry.insert(0, "Nickname")
-        self._nickname_entry.pack(pady=10, ipady=10)
-
-        # Placeholder 
-        self._nickname_entry.bind("<FocusIn>", lambda _ : self._clear_placeholder())
-        self._nickname_entry.bind("<FocusOut>", lambda _ : self._restore_placeholder())
-
         # Load the rounded button image
         btn_img = Image.open("assets/buttons/start_btn.png").resize((240, 60), Image.Resampling.LANCZOS)
         self._start_btn_img = ImageTk.PhotoImage(btn_img)
@@ -134,26 +114,9 @@ class PlayerInterface(DogPlayerInterface):
             bg=self._primary_color,
             activebackground=self._primary_color,
             highlightthickness=0,
-            command=self.start_match
+            command=self._start_match
         )
         self._start_btn.pack(pady=10)
-
-    def _init_waiting_frame(self):
-        self._waiting_frame = Frame(self._window, bg=self._primary_color)
-        self._waiting_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self._window.update()
-
-        waiting_label = Label(
-            self._waiting_frame,
-            text="Waiting for players. The match will start when the third player connects.",
-            bg=self._primary_color,
-            fg="white",
-            font=("Helvetica", 16, "bold"),
-            wraplength=800,
-            justify="center"
-        )
-        waiting_label.place(relx=0.5, rely=0.5, anchor="center")
-
 
     def _init_game_frame(self):
         # Destroy login
@@ -348,41 +311,16 @@ class PlayerInterface(DogPlayerInterface):
                 ))
                 self._remote_player_card_labels[player_index][row][col].grid(row=row, column=col, padx=5, pady=5)
 
-    def _clear_placeholder(self):
-        if self._nickname_entry.get() == "Nickname":
-            self._nickname_entry.delete(0, END)
-            self._nickname_entry.config(fg="black")
-
-    def _restore_placeholder(self):
-        if self._nickname_entry.get() == "":
-            self._nickname_entry.insert(0, "Nickname")
-            self._nickname_entry.config(fg="#A9A9A9")
-
-    def start_match(self):
-        nickname = self._nickname_entry.get().strip()
-        if not nickname or nickname == "Nickname":
-            messagebox.showerror("Error", "Please enter a valid nickname.")
-            return
-        
-        message = self.dog_server_interface.initialize(nickname, self)
-        messagebox.showinfo(message=message)
-        if message != "Conectado a Dog Server":
-            return
-        
+    def _start_match(self):
         start_status = self.dog_server_interface.start_match(3)
         message = start_status.get_message()
         messagebox.showinfo(message=message)
-        if start_status.get_code() == '0':
-            self._window.quit()
 
-        if start_status.get_code() == '1':
-            self._init_waiting_frame()
-            return
-        
-        self._match = Match(start_status.get_players(), start_status.get_local_id())
-        self._match.start_match()
+        if start_status.get_code() == '2':
+            self._match = Match(start_status.get_players(), start_status.get_local_id())
+            self._match.start_match()
+            self._init_game_frame()
 
-        self._init_game_frame()
 
     def receive_start(self, start_status: StartStatus):
         if self._match != None:

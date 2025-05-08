@@ -9,16 +9,12 @@ class Round:
         self._discard_pile: Card = None
         self._boards: list[Board] = [None, None, None]
         self._round_number = round_number
+        self._current_player_order: int = ((round_number - 1 ) % 3) + 1
 
     def start_round(self, players: list[Player]) -> None:
         self._deck.load_default_deck()
         self._discard_pile = self._deck.draw_card()
         self.create_boards(players)
-
-    # def load_round_from_dict(self, players: list[Player], round_info: dict) -> None:
-    #     self._deck.load_deck(round_info["deck"])
-    #     self.load_discard_pile(round_info["discard_pile"])
-    #     self.load_boards(players, round_info["boards"])
 
     def create_boards(self, players: list[Player]) -> None:
         for i in range(3):

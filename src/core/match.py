@@ -8,9 +8,9 @@ class Match:
         self._current_round: Round = None
         self._local_player = self._get_player_by_id(local_player_id)
         self._is_running: bool = False
-        self._current_order: int = 0 
+        self._current_order: int = 1
 
-    def start_match(self) -> dict:
+    def start_match(self) -> None:
         if self._is_running:
             raise RuntimeError("Match is already running.")
         
