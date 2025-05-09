@@ -21,8 +21,22 @@ class Match:
         self._current_round = Round(round_number)
         self._current_round.start_round(self._players)
 
+    def is_running(self) -> bool:
+        return self._is_running
+
+    def get_players(self) -> list[Player]:
+        return self._players
+
     def get_local_player(self) -> Player:
         return self._local_player
+    
+    def get_remote_players(self) -> list[Player]:
+        remote_players = []
+        for player in self._players:
+            if player.get_id() != self._local_player.get_id():
+                remote_players.append(player)
+        
+        return remote_players
         
     def get_current_player(self) -> Player:
         return self._get_player_by_order(self._current_order + 1)
