@@ -68,6 +68,7 @@ class PlayerInterface(DogPlayerInterface):
         self._remote_player_icon_labels: list[Label] = [None, None]
         self._local_player_icon_label_text: Label = None
         self._local_player_icon_label: Label = None
+        self._local_player_hand_label: Label = None
         self._turn_text_label: Label = None
         self._player_turn_label: Label = None
         self._trash_can_label: Label = None
@@ -117,6 +118,7 @@ class PlayerInterface(DogPlayerInterface):
 
         self._set_local_player_board()
         self._set_local_player_icon_name()
+        self._set_local_player_hand()
         self._set_remote_players_boards()
         self._set_remote_players_icon_name()
         self._set_discard_pile_card() 
@@ -124,6 +126,19 @@ class PlayerInterface(DogPlayerInterface):
         self._set_players_label()
         self._set_player_turn_label()
 
+    def enable_destinations(self, allow_board: bool, allow_discard: bool) -> None:
+        # Enable/disable the local player card buttons
+        for row in range(2):
+            for col in range(3):
+                if self._local_player_card_btn[row][col] is not None:
+                    self._local_player_card_btn[row][col].configure(state="normal" if allow_board else "disabled")
+
+        # Enabled/disable the discard pile button
+        if self._discard_pile_btn is not None:
+            self._discard_pile_btn.configure(state="normal" if allow_discard else "disabled")
+
+    def disable_all_destinations(self) -> None:
+        self.enable_destinations(False, False)
 
     ###################################################################################################
     ### Load default images                                                                         ###
@@ -220,6 +235,7 @@ class PlayerInterface(DogPlayerInterface):
         self._create_deck_of_cards()
         self._create_discard_pile()
         self._create_local_player_board()
+        self._create_local_player_hand()
         self._create_remote_player_boards()
 
     ##################################################################################################
@@ -520,6 +536,47 @@ class PlayerInterface(DogPlayerInterface):
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
 
+    ##################################################################################################
+    ### LOCAL PLAYER HAND                                                                          ###
+    ##################################################################################################
+
+    def _create_local_player_hand(self) -> None:
+        self._local_player_hand_label = Label(
+            self._game_frame,
+            image=self._local_player_card_back_img, 
+            bg=self._bg_color
+        )
+        self._local_player_hand_label.place(x=403, y=668, width=148, height=231)
+        self._local_player_hand_label.place_forget()  # initially invisible
+    
+    def _set_local_player_hand(self) -> None:
+        if self._match is None or not self._match.is_running():
+            return
+
+        current_player = self._match.get_current_player()
+        local_player = self._match.get_local_player()
+
+        # Check if it's the local player's turn
+        if current_player.get_id() != local_player.get_id():
+            self._local_player_hand_label.place_forget()
+            return
+
+        board = self._match.get_local_player_board()
+        hand = board.get_hand()
+
+        if hand is None:
+            self._local_player_hand.place_forget()
+            return
+
+        # Load the image of the card in hand
+        card_id = hand.get_id()
+        img = Image.open(f"assets/cards/{card_id}.png").resize((148, 231))
+        img = ImageTk.PhotoImage(img)
+
+        self._local_player_hand_label.configure(image=img)
+        self._local_player_hand_label.image = img
+        self._local_player_hand_label.place(x=403, y=668, width=148, height=231)
+
     ###################################################################################################
     ### REMOTE PLAYER BOARDS                                                                        ###
     ###################################################################################################
@@ -606,6 +663,10 @@ class PlayerInterface(DogPlayerInterface):
         print(start_status.get_local_id())
         print(start_status.get_players())
 
+    ####################################################################################################
+    ### Event Handlers                                                                               ###
+    ####################################################################################################
+
     def _on_card_click(self, card_id: str) -> None:
         if self._match == None:
             return
@@ -622,4 +683,14 @@ class PlayerInterface(DogPlayerInterface):
         if self._match == None:
             return
 
-        print("draw pile clicked!")
+        board = self._match.get_local_player_board()
+        card = self._match.get_current_round().get_deck().draw_card()
+        board.add_card_to_hand(card)
+        
+        self._set_local_player_hand() # show the card in hand
+
+        from_deck = card.get_origin()
+        if from_deck:
+            self.enable_destinations(True, True)
+        else:
+            self.enable_destinations(True, False)
