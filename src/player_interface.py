@@ -42,6 +42,7 @@ class PlayerInterface(DogPlayerInterface):
         self._deck_img: PhotoImage = None
         self._discard_pile_img: PhotoImage = None
         self._trash_can_img: PhotoImage = None
+        self._local_player_hand_img: PhotoImage = None
         self._local_player_card_back_img: PhotoImage = None
         self._remote_player_card_back_img: PhotoImage = None
         self._local_player_board_card_imgs: list[list[PhotoImage]] = [
@@ -126,7 +127,7 @@ class PlayerInterface(DogPlayerInterface):
         self._set_players_label()
         self._set_player_turn_label()
 
-    def enable_destinations(self, allow_board: bool, allow_discard: bool) -> None:
+    def enable_destinations(self, allow_board: bool, allow_discard: bool, allow_deck: bool) -> None:
         # Enable/disable the local player card buttons
         for row in range(2):
             for col in range(3):
@@ -137,8 +138,12 @@ class PlayerInterface(DogPlayerInterface):
         if self._discard_pile_btn is not None:
             self._discard_pile_btn.configure(state="normal" if allow_discard else "disabled")
 
+        # Enabled/disable the deck button
+        if self._deck_btn is not None:
+            self._deck_btn.configure(state="normal" if allow_deck else "disabled")
+
     def disable_all_destinations(self) -> None:
-        self.enable_destinations(False, False)
+        self.enable_destinations(False, False, False)
 
     ###################################################################################################
     ### Load default images                                                                         ###
@@ -171,6 +176,7 @@ class PlayerInterface(DogPlayerInterface):
         img = Image.open("assets/others/trash-can.png") 
         img = img.resize((49, 51))
         self._trash_can_img = ImageTk.PhotoImage(img)
+
 
     ##################################################################################################
     ### Login Frame                                                                                ###
@@ -565,16 +571,16 @@ class PlayerInterface(DogPlayerInterface):
         hand = board.get_hand()
 
         if hand is None:
-            self._local_player_hand.place_forget()
+            self._local_player_hand_label.place_forget()
             return
 
         # Load the image of the card in hand
         card_id = hand.get_id()
+
         img = Image.open(f"assets/cards/{card_id}.png").resize((148, 231))
         img = ImageTk.PhotoImage(img)
-
+        self._local_player_hand_img = img
         self._local_player_hand_label.configure(image=img)
-        self._local_player_hand_label.image = img
         self._local_player_hand_label.place(x=403, y=668, width=148, height=231)
 
     ###################################################################################################
