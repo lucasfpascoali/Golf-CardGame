@@ -4,9 +4,9 @@ Esse repositório contém as modelagens e o código-fonte do projeto da discipli
 
 Desenvolvido pelos alunos do curso de Ciência da Computação:
 
-Juliana Miranda Bosio
-Lucas Furlanetto Pascoali
-Vinícios Rosa Buzzi
+- Juliana Miranda Bosio
+- Lucas Furlanetto Pascoali
+- Vinícios Rosa Buzzi
 
 # Para rodar
 
