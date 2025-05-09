@@ -29,12 +29,18 @@ class Board:
 
     def get_card_in_position(self, row: int, column: int) -> Card:
         return self._matrix[row][column]
+    
+    def get_hand(self) -> Card:
+        return self._hand
 
     def add_card_to_hand(self, card: Card) -> None:
         if self._hand is not None:
             raise ValueError("Hand already has a card")
         
         self._hand = card
+
+    def clear_hand(self) -> None:
+        self._hand = None
 
     def reveal_two_random_cards(self):
         random_positions = self._get_two_random_cards_pos()
