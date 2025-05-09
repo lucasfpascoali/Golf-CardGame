@@ -82,6 +82,9 @@ class PlayerInterface(DogPlayerInterface):
 
         self._window.mainloop()
 
+
+
+
     def _init_login_frame(self):
         self._login_frame = Frame(self._window, bg=self._primary_color)
         self._login_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -234,19 +237,28 @@ class PlayerInterface(DogPlayerInterface):
         self._deck_btn.place(x=436, y=391)
 
     def _create_discard_pile(self):
-        
-
         img = Image.open("assets/others/trash-can.png") 
         img = img.resize((49, 51))
         self._trash_can_img = ImageTk.PhotoImage(img)
         self._trash_can_label = Label(self._game_frame, image=self._trash_can_img, bg=self._bg_color)
         self._trash_can_label.place(x=1230, y=480)
 
-    def _set_discard_pile_img(self):
+
+    ##################################################################################################
+    ### DISCARD PILE                                                                               ###
+    ##################################################################################################
+    
+    def _get_default_discard_pile(self) -> str:
+        return "assets/others/discard-pile-default.png"
+
+    def _set_discard_pile_card(self):
         card_id = self._match.get_current_round().get_discard_pile().get_id()
-        img = Image.open(f"assets/cards/{card_id}.png") 
+        self._set_discard_pile_img(f"assets/cards/{card_id}.png")
+
+    def _set_discard_pile_img(self, img_path: str = _get_default_discard_pile()) -> None:
+        img = Image.open(img_path) 
         img = img.resize((135, 190))
-        self._discard_pile_img = ImageTk.PhotoImage(img)
+        self._discard_pile_img = img
         self._discard_pile_btn = Button(
             self._game_frame,
             image=self._discard_pile_img,
@@ -258,7 +270,11 @@ class PlayerInterface(DogPlayerInterface):
         )
         self._discard_pile_btn.place(x=1092, y=422)
 
-    def _create_remote_player_boards(self):
+    ###################################################################################################
+    ###                                                                                             ###
+    ###################################################################################################
+
+    def _update_remote_player_boards(self):
         # Frame for the first remote player (top left)
         self._remote_players_board_frames.append(Frame(
             self._game_frame,
