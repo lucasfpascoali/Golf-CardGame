@@ -427,7 +427,7 @@ class PlayerInterface(DogPlayerInterface):
             bg=self._bg_color,
             activebackground=self._bg_color,
             highlightthickness=0,
-            command=self._on_deck_click
+            command=lambda: self._on_draw_click(True)
         )
         self._deck_btn.place(x=436, y=391)
 
@@ -461,7 +461,7 @@ class PlayerInterface(DogPlayerInterface):
             bg=self._bg_color,
             activebackground=self._bg_color,
             highlightthickness=0,
-            command=self._on_discard_click
+            command=lambda: self._on_draw_click(False)
         )
         self._discard_pile_btn.place(x=1092, y=422)
 
@@ -673,24 +673,23 @@ class PlayerInterface(DogPlayerInterface):
         
         print(f"Card {card_id} clicked")
 
-    def _on_discard_click(self) -> None:
-        if self._match == None:
-            return
-
-        print("discard pile clicked")
-
-    def _on_deck_click(self) -> None:
+    def _on_draw_click(self, from_deck: bool) -> None:
         if self._match == None:
             return
 
         board = self._match.get_local_player_board()
-        card = self._match.get_current_round().get_deck().draw_card()
-        board.add_card_to_hand(card)
+
+        if from_deck:
+            card = self._match.get_current_round().get_deck().draw_card()
+        else:
+            card = self._match.get_current_round().get_discard_pile()
         
+        board.add_card_to_hand(card)
         self._set_local_player_hand() # show the card in hand
 
-        from_deck = card.get_origin()
         if from_deck:
             self.enable_destinations(True, True)
         else:
             self.enable_destinations(True, False)
+
+        self._match.play_card(from_deck)
