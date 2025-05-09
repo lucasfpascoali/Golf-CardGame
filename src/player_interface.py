@@ -591,20 +591,29 @@ class PlayerInterface(DogPlayerInterface):
         if start_status.get_code() == '2':
             self._match = Match(start_status.get_players(), start_status.get_local_id())
             self._match.start_match()
+            a_move = self._match.get_move_dict()
+            a_move["match_status"] = "next"
+            self.dog_server_interface.send_move(a_move)
             self._init_game_frame()
             self._update_gui()
 
     def receive_start(self, start_status: StartStatus) -> None:
-        if self._match != None:
-            return
-        
         if start_status.get_code() != '2':
             messagebox.showerror("Failed to start match")
             self._window.quit()
+            return
         
+        self._match = Match(start_status.get_players(), start_status.get_local_id())
+        self._match.set_as_running()
+        self._init_game_frame()
+
+    def receive_move(self, a_move: dict) -> None:
+        if self._match == None or not self._match.is_running():
+            return
         
-        print(start_status.get_local_id())
-        print(start_status.get_players())
+        print(a_move)
+        # self._match.load_match_from_move(a_move)
+        # self._update_gui()
 
     def _on_card_click(self, card_id: str) -> None:
         if self._match == None:

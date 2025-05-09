@@ -16,6 +16,13 @@ class Deck:
     def get_current_deck(self) -> list[Card]:
         return self._cards
 
+    def get_current_deck_state(self) -> list[str]:
+        deck_state: list[str] = []
+        for card in self._cards:
+            deck_state.append(card.get_id())
+        
+        return deck_state
+
     def draw_card(self) -> Card:
         if len(self._cards) == 0:
             raise ValueError("Deck is empty")

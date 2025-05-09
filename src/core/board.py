@@ -9,6 +9,21 @@ class Board:
         self._matrix : list[list[Card]] = [[None for _ in range(3)] for _ in range(2)] # 2 rows and 3 columns
         self.load_matrix(initial_cards)
     
+    def get_board_state_dict(self) -> dict:
+        board_dict: dict = {}
+        board_dict["player_id"] = self._player.get_id()
+        matrix: list[list[dict]] = []
+        for row in range(2):
+            matrix.append([])
+            for col in range(3):
+                pos_dict = {}
+                pos_dict["face_up"] = self._matrix[row][col].is_face_up()
+                pos_dict["card_id"] = self._matrix[row][col].get_id()
+                matrix.append(pos_dict)
+            
+        board_dict["matrix"] = matrix
+        return board_dict
+
     def get_player(self) -> Player:
         return self._player
 

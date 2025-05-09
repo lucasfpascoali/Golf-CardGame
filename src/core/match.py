@@ -2,20 +2,35 @@ from core.player import Player
 from core.round import Round
 from core.board import Board
 
+
+# Move Object Structure
+# a_move = {
+#   "match_status": "next" | "finished" (exigência do DOG, ainda existe um terceiro valor possível, mas não há uso neste programa),
+#   "current_round": {
+#       deck: list[str], -> string vai ser o card id, a partir dele construímos as cartas (cartas do baralho são sempre face-up false)
+#       discard_pile: str, -> string do card id, face up vai ser sempre true
+#       boards: list[dict], -> um dict para cada board, o dict vai ter o player_id e um matrix (duas listas para o grid 2x3, cada posicao do grid possui um dict com card id e face up)
+#       current_player_order: int
+#   }
+#   "scores": dict[str, int] -> mapeia o id do player para um inteiro representando a pontuação do jogador 
+# }
+
 class Match:
     def __init__(self, players_info: list[list[str]], local_player_id: str):
         self._players: list[Player] = self._build_players(players_info)
         self._current_round: Round = None
         self._local_player = self._get_player_by_id(local_player_id)
         self._is_running: bool = False
-        self._current_order: int = 1
 
     def start_match(self) -> None:
         if self._is_running:
             raise RuntimeError("Match is already running.")
         
-        self._is_running = True
+        self.set_as_running()
         self.start_round(1)
+
+    def set_as_running(self) -> None:
+        self._is_running = True
 
     def start_round(self, round_number: int):        
         self._current_round = Round(round_number)
@@ -39,7 +54,7 @@ class Match:
         return remote_players
         
     def get_current_player(self) -> Player:
-        return self._get_player_by_order(self._current_order + 1)
+        return self._get_player_by_order(self._current_round.get_current_player_order())
 
     def get_current_round(self) -> Round:
         return self._current_round
@@ -55,8 +70,17 @@ class Match:
         
         return remote_players_boards
 
-    def next_order(self) -> None:
-        self._current_order = (self._current_order + 1) % 3 # Loop back to the first player (Always 3 players)
+    def get_move_dict(self) -> dict:
+        a_move: dict = {}
+        a_move["match_status"] = "next" if self.is_running() else "finished"
+        a_move["current_round"] = self._current_round.get_state_dict()
+        a_move["scores"] = self._get_players_scores_dict()
+        return a_move
+
+    def _get_players_scores_dict(self) -> dict:
+        scores_dict = {}
+        for player in self._players:
+            scores_dict[player.get_nickname()] = player.get_score()
 
     def _get_player_by_order(self, order: int) -> Player:
         for player in self._players:

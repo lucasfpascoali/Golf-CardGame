@@ -25,6 +25,9 @@ class Round:
     def get_round_number(self) -> int:
         return self._round_number
     
+    def get_current_player_order(self) -> int:
+        return self._current_player_order
+    
     def get_discard_pile(self) -> Card:
         return self._discard_pile
     
@@ -34,3 +37,19 @@ class Round:
                 return board
         
         raise ValueError("Player not found in this round")
+    
+    def _get_boards_state(self) -> list[dict]:
+        boards_state: list[dict] = []
+        for board in self._boards:
+            boards_state.append(board.get_board_state_dict())
+
+        return boards_state
+    
+    def get_state_dict(self) -> dict:
+        state_dict = {}
+        state_dict["deck"] = self._deck.get_current_deck_state()
+        state_dict["discard_pile"] = self._discard_pile.get_id()
+        state_dict["boards"] = self._get_boards_state()
+        state_dict["current_player_order"] = self._current_player_order
+
+        return state_dict
