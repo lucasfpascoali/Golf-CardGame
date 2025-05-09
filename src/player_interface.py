@@ -113,7 +113,7 @@ class PlayerInterface(DogPlayerInterface):
     ### GUI + Game State Control                                                                    ###
     ###################################################################################################
 
-    def _update_gui(self):
+    def _update_interface(self):
         if self._match == None or not self._match.is_running():
             return
 
@@ -658,7 +658,7 @@ class PlayerInterface(DogPlayerInterface):
             a_move["match_status"] = "next"
             self.dog_server_interface.send_move(a_move)
             self._init_game_frame()
-            self._update_gui()
+            self._update_interface()
 
     def receive_start(self, start_status: StartStatus) -> None:
         if start_status.get_code() != '2':
@@ -676,7 +676,7 @@ class PlayerInterface(DogPlayerInterface):
         
         print(a_move)
         # self._match.load_match_from_move(a_move)
-        # self._update_gui()
+        # self._update_interface()
 
     ####################################################################################################
     ### Event Handlers                                                                               ###

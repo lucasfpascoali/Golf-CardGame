@@ -34,7 +34,19 @@ class Match:
 
     def start_round(self, round_number: int):        
         self._current_round = Round(round_number)
-        self._current_round.start_round(self._players)
+        self._current_round.start_round(self._players) 
+
+    def draw_card_from_deck(self) -> None:
+        self._current_round.draw_card_from_deck(self._local_player.get_id())
+
+    def draw_card_from_discard_pile(self) -> None:
+        self._current_round.draw_card_from_discard_pile(self._local_player.get_id())
+
+    def is_player_turn(self) -> bool:
+        pass
+
+    def is_local_player_turn(self) -> bool:
+        return self._current_round.get_current_player_order() == self._local_player.get_order()
 
     def is_running(self) -> bool:
         return self._is_running

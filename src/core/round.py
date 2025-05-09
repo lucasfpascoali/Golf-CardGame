@@ -21,7 +21,21 @@ class Round:
             initial_cards = self._deck.get_six_cards()
             self._boards[i] = Board(players[i], initial_cards)
             self._boards[i].reveal_two_random_cards()
-            
+
+    def draw_card_from_deck(self, player_id: str) -> None:
+        card = self._deck.draw_card()
+        board = self.get_board_by_player_id(player_id)
+        board.add_card_to_hand(card)
+
+    def draw_card_from_discard_pile(self, player_id: str) -> None:
+        card = self.get_discard_pile()
+        board = self.get_board_by_player_id(player_id)
+        self._clear_discard_pile()
+        board.add_card_to_hand(card)
+
+    def _clear_discard_pile(self) -> None:
+        self._discard_pile = None
+
     def get_round_number(self) -> int:
         return self._round_number
     
@@ -35,8 +49,6 @@ class Round:
         for board in self._boards:
             if board.get_player().get_id() == player_id:
                 return board
-        
-        raise ValueError("Player not found in this round")
     
     def _get_boards_state(self) -> list[dict]:
         boards_state: list[dict] = []
