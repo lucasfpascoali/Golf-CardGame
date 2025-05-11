@@ -1,6 +1,7 @@
 from core.player import Player
 from core.round import Round
 from core.board import Board
+from dog.dog_actor import DogActor
 
 # Move Object Structure
 # a_move = {
@@ -22,12 +23,9 @@ class Match:
         self._local_player_id = local_id
         self._is_running: bool = False
 
-    def start_match(self) -> None:
-        if self._is_running:
-            raise RuntimeError("Match is already running.")
-        
+    def start_match(self, dog: DogActor) -> None:        
         self.set_as_running()
-        self.start_round(1)
+        self.start_round(1, dog)
 
     def load_match(self, a_move: dict) -> None:
         self._current_round = Round(a_move["current_round"]["round_number"])
@@ -47,9 +45,11 @@ class Match:
     def set_as_finished(self) -> None:
         self._is_running = False
 
-    def start_round(self, round_number: int) -> None:        
+    def start_round(self, round_number: int, dog: DogActor) -> None:        
         self._current_round = Round(round_number)
         self._current_round.start_round(self._players) 
+        a_move = self.get_move_dict()
+        dog.send_move(a_move)
 
     def draw_card_from_deck(self) -> None:
         self._current_round.draw_card_from_deck(self._local_player_id)
@@ -66,7 +66,7 @@ class Match:
     def reveal_card(self, row: int, column: int) -> None:
         self._current_round.reveal_card(self._local_player_id, row, column)
 
-    def end_of_turn(self) -> None:
+    def end_of_turn(self, dog: DogActor) -> None:
         is_round_finished = self._current_round.is_round_finished()
         if is_round_finished:
             self._match.show_round_results()
@@ -74,7 +74,7 @@ class Match:
             if round_number == 9:
                 self.set_as_finished()
             else:
-                self.start_round(round_number + 1)
+                self.start_round(round_number + 1, dog)
         else:
             self._current_round.set_next_player()
 

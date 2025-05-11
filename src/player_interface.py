@@ -629,15 +629,16 @@ class PlayerInterface(DogPlayerInterface):
         message = start_status.get_message()
         messagebox.showinfo(message=message)
 
-        if start_status.get_code() == '2':
-            self._match = Match(start_status.get_players(), start_status.get_local_id())
-            self._match.start_match()
-            a_move = self._match.get_move_dict()
-            a_move["match_status"] = "next"
-            self.dog_server_interface.send_move(a_move)
+        code = start_status.get_code()
+        if code == '2':
+            players = start_status.get_players()
+            local_id = start_status.get_local_id()
+            self._match = Match(players, local_id)
+            self._match.start_match(self.dog_server_interface)
             self._init_game_frame()
             self._update_interface()
-            if not self._match.is_local_player_turn():
+            turn = self._match.is_local_player_turn()
+            if not turn:
                 self._disable_all_clicks()
 
     def receive_start(self, start_status: StartStatus) -> None:
@@ -654,6 +655,7 @@ class PlayerInterface(DogPlayerInterface):
             
     def receive_move(self, a_move: dict) -> None:
         self._match.load_match(a_move)
+        self._update_interface()
         is_finished = not self._match.is_running()
         if is_finished:
             self.end_match_locally()
@@ -699,7 +701,7 @@ class PlayerInterface(DogPlayerInterface):
         self._end_of_turn()
 
     def _end_of_turn(self):
-        self._match._end_of_turn()
+        self._match.end_of_turn(self.dog_server_interface)
 
         is_finished = not self._match.is_running()
         if is_finished:
@@ -720,10 +722,10 @@ class PlayerInterface(DogPlayerInterface):
 
         if from_deck:
             self._discard_pile_btn.configure(command=lambda: self._match.discard_hand())
-            self._match.get_current_round().draw_card_from_deck()
+            self._match.draw_card_from_deck()
             self._enable_clicks(True, True, False)
         else:
-            self._match.get_current_round().get_discard_pile()
+            self._match.draw_card_from_discard_pile()
             self._enable_clicks(True, False, False)
         
         self._update_interface()

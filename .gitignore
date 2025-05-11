@@ -9,3 +9,7 @@ __pycache__
 
 # Videos Individuais
 videos.txt
+
+# VPP
+.Golf.*
+Golf.vpp.*

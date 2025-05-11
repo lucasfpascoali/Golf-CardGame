@@ -3,6 +3,7 @@ from core.player import Player
 from core.board import Board
 from core.card import Card
 from core.suit import Suit
+from dog.dog_actor import DogActor
 
 class Round:
     def __init__(self, round_number: int):        
