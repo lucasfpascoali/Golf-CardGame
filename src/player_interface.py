@@ -124,7 +124,7 @@ class PlayerInterface(DogPlayerInterface):
         self._set_players_label()
         self._set_player_turn_label()
 
-    def enable_destinations(self, allow_board: bool, allow_discard: bool, allow_deck: bool) -> None:
+    def _enable_clicks(self, allow_board: bool, allow_discard: bool, allow_deck: bool) -> None:
         # Enable/disable the local player card buttons
         for row in range(2):
             for col in range(3):
@@ -139,8 +139,8 @@ class PlayerInterface(DogPlayerInterface):
         if self._deck_btn is not None:
             self._deck_btn.configure(state="normal" if allow_deck else "disabled")
 
-    def disable_all_destinations(self) -> None:
-        self.enable_destinations(False, False, False)
+    def _disable_all_clicks(self) -> None:
+        self._enable_clicks(False, False, False)
 
     ###################################################################################################
     ### Load default images                                                                         ###
@@ -493,8 +493,7 @@ class PlayerInterface(DogPlayerInterface):
                     bg=self._bg_color,
                     bd=0,
                     highlightthickness=0,
-                    activebackground=self._bg_color,
-                    command=lambda idx="": self._on_card_click(idx)
+                    activebackground=self._bg_color
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
                 
@@ -639,7 +638,7 @@ class PlayerInterface(DogPlayerInterface):
             self._init_game_frame()
             self._update_interface()
             if not self._match.is_local_player_turn():
-                self.disable_all_destinations()
+                self._disable_all_clicks()
 
     def receive_start(self, start_status: StartStatus) -> None:
         if start_status.get_code() == '2':
@@ -648,7 +647,7 @@ class PlayerInterface(DogPlayerInterface):
             self._match = Match(players, local_id)
             self._match.set_as_running()
             self._init_game_frame()
-            self.disable_all_destinations()
+            self._disable_all_clicks()
         else:
             messagebox.showerror("Failed to start match")
             self._window.quit()
@@ -661,9 +660,9 @@ class PlayerInterface(DogPlayerInterface):
         else:
             turn = self._match.is_local_player_turn()
             if turn:
-                self.enable_destinations(True, True, True)
+                self._enable_clicks(True, True, True)
             else:
-                self.disable_all_destinations()
+                self._disable_all_clicks()
 
     def receive_withdrawal_notification(self):
         messagebox.showerror("Someone forfeited the game")
@@ -683,7 +682,14 @@ class PlayerInterface(DogPlayerInterface):
     def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
         if is_discard_pile_click:
             self._match.discard_hand()
-            self.enable_destinations(True, False, False)
+            self._enable_clicks(True, False, False)
+            for i in range(2):
+                for j in range(3):
+                    if "assets/cards/back.png" in self._local_player_card_btn[i][j].image_names():
+                        self._local_player_card_btn[i][j].configure(state="disabled")
+                    else:
+                        self._local_player_card_btn[i][j].configure(command=lambda: self.reveal_card(i, j))
+                    
         else:
             self._match.swap_card_by_hand(row, col)
             self._end_of_turn()
@@ -692,8 +698,8 @@ class PlayerInterface(DogPlayerInterface):
         self._match.reveal_card(row, col)
         self._end_of_turn()
 
-    def end_of_turn(self):
-        self._match.end_of_turn()
+    def _end_of_turn(self):
+        self._match._end_of_turn()
 
         is_finished = not self._match.is_running()
         if is_finished:
@@ -703,7 +709,7 @@ class PlayerInterface(DogPlayerInterface):
         self.dog_server_interface.send_move(a_move)
 
         self._update_interface()
-        self.disable_all_destinations()
+        self._disable_all_clicks()
     
     def end_match_locally():
         pass
@@ -713,10 +719,11 @@ class PlayerInterface(DogPlayerInterface):
             return
 
         if from_deck:
+            self._discard_pile_btn.configure(command=lambda: self._match.discard_hand())
             self._match.get_current_round().draw_card_from_deck()
-            self.enable_destinations(True, True, False)
+            self._enable_clicks(True, True, False)
         else:
             self._match.get_current_round().get_discard_pile()
-            self.enable_destinations(True, False, False)
+            self._enable_clicks(True, False, False)
         
         self._update_interface()

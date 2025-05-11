@@ -19,7 +19,6 @@ class Match:
     def __init__(self, players_info: list[list[str]], local_id: str):
         self._players: list[Player] = self._build_players(players_info)
         self._current_round: Round = None
-        self._local_player = self._get_player_by_id(local_id)
         self._local_player_id = local_id
         self._is_running: bool = False
 
@@ -42,7 +41,6 @@ class Match:
             player = self._get_player_by_id(player_id)
             player.set_score(score)
             
-
     def set_as_running(self) -> None:
         self._is_running = True
 
@@ -54,10 +52,10 @@ class Match:
         self._current_round.start_round(self._players) 
 
     def draw_card_from_deck(self) -> None:
-        self._current_round.draw_card_from_deck(self._local_player.get_id())
+        self._current_round.draw_card_from_deck(self._local_player_id)
 
     def draw_card_from_discard_pile(self) -> None:
-        self._current_round.draw_card_from_discard_pile(self._local_player.get_id())
+        self._current_round.draw_card_from_discard_pile(self._local_player_id)
 
     def discard_hand(self) -> None:
         self._current_round.discard_hand(self._local_player_id)
@@ -88,7 +86,7 @@ class Match:
             self._current_round.reveal_player_board(player_id)
 
     def is_local_player_turn(self) -> bool:
-        return self._current_round.get_current_player_order() == self._local_player.get_order()
+        return self._current_round.get_current_player_order() == self.get_local_player().get_order()
 
     def is_running(self) -> bool:
         return self._is_running
@@ -102,7 +100,7 @@ class Match:
     def get_remote_players(self) -> list[Player]:
         remote_players = []
         for player in self._players:
-            if player.get_id() != self._local_player.get_id():
+            if player.get_id() != self._local_player_id:
                 remote_players.append(player)
         
         return remote_players
@@ -120,7 +118,7 @@ class Match:
     def get_remote_players_boards(self) -> list[Board]:
         remote_players_boards = []
         for player in self._players:
-            if player.get_id() != self._local_player.get_id():
+            if player.get_id() != self._local_player_id:
                 remote_players_boards.append(self._current_round.get_board_by_player_id(player.get_id()))
         
         return remote_players_boards

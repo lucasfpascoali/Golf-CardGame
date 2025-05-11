@@ -5,15 +5,11 @@ class Card:
         self._value = value
         self._suit = suit
         self._id = f"{self._value}_{self._suit.name}"
-        self._from_deck = True
         self._face_up = False
 
     def get_id(self) -> str:
         return self._id
     
-    def is_from_deck(self) -> bool:
-        return self._from_deck
-
     def is_face_up(self) -> bool:
         return self._face_up
 

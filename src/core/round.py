@@ -53,7 +53,7 @@ class Round:
         return cards
 
     def calculate_score(self, player_id: str) -> None:
-        pass
+       pass
 
     def create_boards(self, players: list[Player]) -> None:
         for i in range(3):
@@ -76,19 +76,19 @@ class Round:
         board = self.get_board_by_player_id(local_player_id)
         board.clear_hand()
 
-    def swap_card_by_hand(self, local_player_id: str, row: int, col: int) -> None:
+    def swap_card_by_hand(self, local_player_id: str, row: int, column: int) -> None:
         board = self.get_board_by_player_id(local_player_id)
-        board.swap_cards(row, col)
+        board.swap_cards(row, column)
         self._discard_pile = board.get_hand()
         board.clear_hand()
 
     def reveal_player_board(self, player_id: str) -> None:
-        board = self.get_board_by_player_id()
+        board = self.get_board_by_player_id(player_id)
         board.reveal_board()
 
-    def reveal_card(self, local_player_id: str, row: int, col: int) -> None:
+    def reveal_card(self, local_player_id: str, row: int, column: int) -> None:
         board = self.get_board_by_player_id(local_player_id)
-        board.swap_cards(row, col)
+        board.swap_cards(row, column)
 
     def set_next_player(self) -> None:
         self._current_player_order = (self._current_player_order % 3) + 1

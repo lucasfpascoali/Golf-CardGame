@@ -17,9 +17,6 @@ class Deck:
             card = Card(value, suit)
             self._cards.append(card)
 
-    def get_current_deck(self) -> list[Card]:
-        return self._cards
-
     def get_current_deck_state(self) -> list[str]:
         deck_state: list[str] = []
         for card in self._cards:
