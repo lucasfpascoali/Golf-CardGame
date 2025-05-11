@@ -654,12 +654,16 @@ class PlayerInterface(DogPlayerInterface):
             self._window.quit()
             
     def receive_move(self, a_move: dict) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-        
-        print(a_move)
-        # self._match.load_match_from_move(a_move)
-        # self._update_interface()
+        self._match.load_match(a_move)
+        is_finished = not self._match.is_running()
+        if is_finished:
+            self.end_match_locally()
+        else:
+            turn = self._match.is_local_player_turn()
+            if turn:
+                self.enable_destinations(True, True, True)
+            else:
+                self.disable_all_destinations()
 
     def receive_withdrawal_notification(self):
         messagebox.showerror("Someone forfeited the game")

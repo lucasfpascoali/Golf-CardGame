@@ -2,6 +2,7 @@ from core.deck import Deck
 from core.player import Player
 from core.board import Board
 from core.card import Card
+from core.suit import Suit
 
 class Round:
     def __init__(self, round_number: int):        
@@ -15,6 +16,41 @@ class Round:
         self._deck.load_default_deck()
         self._discard_pile = self._deck.draw_card()
         self.create_boards(players)
+
+    def load_round(self, round_state_dict: dict) -> None:
+        self._current_player_order = round_state_dict["current_player_order"]
+        self._deck.load_deck(round_state_dict["deck"])
+        self._load_discard_pile(round_state_dict["discard_pile"])
+        self._load_boards(round_state_dict["boards"])
+
+    def _load_discard_pile(self, card_id: str) -> None:
+        value, suit_name = card_id.split('_', 1)
+        suit = Suit[suit_name]
+        card = Card(value, suit)
+        card.reveal()
+        self._discard_pile = card
+    
+    def _load_boards(self, boards_dict: dict[str, list[list[dict]]]) -> None:
+        for player_id, matrix in boards_dict.items():
+            board = self.get_board_by_player_id(player_id)
+            cards = self._build_card_list(matrix)
+            board.load_matrix(cards)
+
+    def _build_card_list(self, matrix: list[list[dict]]) -> list[Card]:
+        cards: list[Card] = []
+        for row in range(2):
+            for col in range(3):
+                card_id: str = matrix[row][col]["card_id"]
+                value, suit_name = card_id.split("_", 1)
+                suit = Suit(suit_name)
+                card = Card(value, suit)
+                is_face_up = matrix[row][col]["face_up"]
+                if is_face_up:
+                    card.reveal()
+                
+                cards.append(card)
+
+        return cards
 
     def calculate_score(self, player_id: str) -> None:
         pass
@@ -94,5 +130,6 @@ class Round:
         state_dict["discard_pile"] = self._discard_pile.get_id()
         state_dict["boards"] = self._get_boards_state()
         state_dict["current_player_order"] = self._current_player_order
+        state_dict["round_number"] = self._round_number
 
         return state_dict

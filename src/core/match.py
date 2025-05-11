@@ -2,11 +2,11 @@ from core.player import Player
 from core.round import Round
 from core.board import Board
 
-
 # Move Object Structure
 # a_move = {
 #   "match_status": "next" | "finished" (exigência do DOG, ainda existe um terceiro valor possível, mas não há uso neste programa),
 #   "current_round": {
+#       round_number : int,
 #       deck: list[str], -> string vai ser o card id, a partir dele construímos as cartas (cartas do baralho são sempre face-up false)
 #       discard_pile: str, -> string do card id, face up vai ser sempre true
 #       boards: list[dict], -> um dict para cada board, o dict vai ter o player_id e um matrix (duas listas para o grid 2x3, cada posicao do grid possui um dict com card id e face up)
@@ -30,13 +30,26 @@ class Match:
         self.set_as_running()
         self.start_round(1)
 
+    def load_match(self, a_move: dict) -> None:
+        self._current_round = Round(a_move["current_round"]["round_number"])
+        self._current_round.load_round(a_move["current_round"])
+        self._load_score(a_move["scores"])
+        if a_move["match_status"] == "finished":
+            self.set_as_finished()
+    
+    def _load_score(self, scores: dict[str, int]) -> None:
+        for player_id, score in scores.items():
+            player = self._get_player_by_id(player_id)
+            player.set_score(score)
+            
+
     def set_as_running(self) -> None:
         self._is_running = True
 
     def set_as_finished(self) -> None:
         self._is_running = False
 
-    def start_round(self, round_number: int):        
+    def start_round(self, round_number: int) -> None:        
         self._current_round = Round(round_number)
         self._current_round.start_round(self._players) 
 
@@ -49,13 +62,13 @@ class Match:
     def discard_hand(self) -> None:
         self._current_round.discard_hand(self._local_player_id)
 
-    def swap_card_by_hand(self, row: int, col: int) -> None:
-        self._current_round.swap_card_by_hand(self._local_player_id, row, col)
+    def swap_card_by_hand(self, row: int, column: int) -> None:
+        self._current_round.swap_card_by_hand(self._local_player_id, row, column)
 
-    def reveal_card(self, row: int, col: int):
-        self._current_round.reveal_card(self._local_player_id, row, col)
+    def reveal_card(self, row: int, column: int) -> None:
+        self._current_round.reveal_card(self._local_player_id, row, column)
 
-    def end_of_turn(self):
+    def end_of_turn(self) -> None:
         is_round_finished = self._current_round.is_round_finished()
         if is_round_finished:
             self._match.show_round_results()
@@ -73,9 +86,6 @@ class Match:
             player_id = players[i].get_id()
             self._current_round.calculate_score(player_id)
             self._current_round.reveal_player_board(player_id)
-
-    def is_player_turn(self) -> bool:
-        pass
 
     def is_local_player_turn(self) -> bool:
         return self._current_round.get_current_player_order() == self._local_player.get_order()

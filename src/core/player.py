@@ -3,7 +3,6 @@ class Player:
         self._nickname = nickname
         self._id = id
         self._score = 0
-        self._is_winner = False
         self._order = order
 
     def get_nickname(self) -> str:
@@ -17,3 +16,6 @@ class Player:
     
     def get_score(self) -> int:
         return self._score
+    
+    def set_score(self, score: int) -> None:
+        self._score = score 

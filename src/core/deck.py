@@ -10,8 +10,12 @@ class Deck:
         self._cards = self._get_default_deck()
         self._shuffle()
 
-    def load_deck(self, cards: list[Card]) -> None:
-        self._cards = cards
+    def load_deck(self, card_ids: list[str]) -> None:
+        for card_id in card_ids:
+            value, suit_name = card_id.split("_", 1)
+            suit = Suit[suit_name]
+            card = Card(value, suit)
+            self._cards.append(card)
 
     def get_current_deck(self) -> list[Card]:
         return self._cards
