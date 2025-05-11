@@ -521,7 +521,7 @@ class PlayerInterface(DogPlayerInterface):
                     bd=0,
                     highlightthickness=0,
                     activebackground=self._bg_color,
-                    command=lambda row=row, col=col: self.play_card(False, row, col)
+                    command=lambda row=row, col=col: self._play_card(False, row, col)
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
 
@@ -666,7 +666,7 @@ class PlayerInterface(DogPlayerInterface):
         self._window.quit()
         return
     
-    def end_match_locally(self) -> None:
+    def _end_match_locally(self) -> None:
         scoreboard_string = self._match.get_players_scoreboard_string()
         messagebox.showinfo(scoreboard_string)
         self._window.quit()
@@ -676,7 +676,7 @@ class PlayerInterface(DogPlayerInterface):
     ### Event Handlers                                                                               ###
     ####################################################################################################
 
-    def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
+    def _play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
         if is_discard_pile_click:
             self._match.discard_hand()
             self.enable_destinations(True, False, False)
@@ -684,16 +684,16 @@ class PlayerInterface(DogPlayerInterface):
             self._match.swap_card_by_hand(row, col)
             self._end_of_turn()
         
-    def reveal_card(self, row: int, col: int) -> None:
+    def _reveal_card(self, row: int, col: int) -> None:
         self._match.reveal_card(row, col)
         self._end_of_turn()
 
-    def end_of_turn(self):
+    def _end_of_turn(self):
         self._match.end_of_turn()
 
         is_finished = not self._match.is_running()
         if is_finished:
-            self.end_match_locally()
+            self._end_match_locally()
         
         a_move = self._match.get_move_dict()
         self.dog_server_interface.send_move(a_move)
@@ -701,7 +701,7 @@ class PlayerInterface(DogPlayerInterface):
         self._update_interface()
         self.disable_all_destinations()
     
-    def end_match_locally():
+    def _end_match_locally():
         pass
 
     def _on_draw_click(self, from_deck: bool) -> None:
