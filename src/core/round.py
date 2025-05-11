@@ -16,6 +16,9 @@ class Round:
         self._discard_pile = self._deck.draw_card()
         self.create_boards(players)
 
+    def calculate_score(self, player_id: str) -> None:
+        pass
+
     def create_boards(self, players: list[Player]) -> None:
         for i in range(3):
             initial_cards = self._deck.get_six_cards()
@@ -32,6 +35,34 @@ class Round:
         board = self.get_board_by_player_id(player_id)
         self._clear_discard_pile()
         board.add_card_to_hand(card)
+
+    def discard_hand(self, local_player_id: str) -> None:
+        board = self.get_board_by_player_id(local_player_id)
+        board.clear_hand()
+
+    def swap_card_by_hand(self, local_player_id: str, row: int, col: int) -> None:
+        board = self.get_board_by_player_id(local_player_id)
+        board.swap_cards(row, col)
+        self._discard_pile = board.get_hand()
+        board.clear_hand()
+
+    def reveal_player_board(self, player_id: str) -> None:
+        board = self.get_board_by_player_id()
+        board.reveal_board()
+
+    def reveal_card(self, local_player_id: str, row: int, col: int) -> None:
+        board = self.get_board_by_player_id(local_player_id)
+        board.swap_cards(row, col)
+
+    def set_next_player(self) -> None:
+        self._current_player_order = (self._current_player_order % 3) + 1
+
+    def is_round_finished(self) -> bool:
+        for board in self._boards:
+            if not board.is_all_cards_revealed():
+                return False
+            
+        return True
 
     def _clear_discard_pile(self) -> None:
         self._discard_pile = None

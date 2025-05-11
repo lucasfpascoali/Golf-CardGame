@@ -114,9 +114,6 @@ class PlayerInterface(DogPlayerInterface):
     ###################################################################################################
 
     def _update_interface(self):
-        if self._match == None or not self._match.is_running():
-            return
-
         self._set_local_player_board()
         self._set_local_player_icon_name()
         self._set_local_player_hand()
@@ -310,11 +307,8 @@ class PlayerInterface(DogPlayerInterface):
         )
         self._player_turn_label.place(x=0, y=853, width=295, height=33)
 
-    def _set_round_label(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-        
-        round_number = self._match.get_current_round().get_round_number()
+    def _set_round_label(self) -> None:        
+        round_number = self._match.get_round_number()
         self._round_label = Label(
             self._side_frame,
             text=f"Round {round_number}/9",
@@ -328,14 +322,13 @@ class PlayerInterface(DogPlayerInterface):
         self._round_label.place(x=0, y=439, width=295, height=33)
         
     def _set_players_label(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-
         players = self._match.get_players()
-        for i in range(len(players)):
+        for i in range(3):
+            player_nickname = players[i].get_nickname()
+            player_score = players[i].get_score()
             self._players_label[i] = Label(
                 self._side_frame,
-                text=f"{players[i].get_nickname()}: {players[i].get_score()} pts",
+                text=f"{player_nickname}: {player_score} pts",
                 bg=self._secondary_color,
                 fg=self._bg_color,
                 font=("Inter", 12, "bold"),
@@ -347,13 +340,11 @@ class PlayerInterface(DogPlayerInterface):
             self._players_label[i].place(x=0, y=486 + i * 40, width=295, height=33)
 
     def _set_player_turn_label(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-        
-        current_player_name = self._match.get_current_player().get_nickname()
+        current_player = self._match.get_current_player()
+        current_player_nickname = current_player.get_nickname()
         self._player_turn_label = Label(
             self._side_frame,
-            text=f"{current_player_name}",
+            text=f"{current_player_nickname}",
             bg=self._primary_color,
             fg=self._bg_color,
             font=("Inter", 14, "bold"),
@@ -389,14 +380,12 @@ class PlayerInterface(DogPlayerInterface):
         self._remote_player_icon_labels[player_index].place(x=x, y=y)
     
     def _set_remote_players_icon_name(self) -> None:
-        if self._match == None or not self._match.is_running:
-            return
-        
         remote_players = self._match.get_remote_players()
         for i in range(2):
+            remote_player_nickname = remote_players[i].get_nickname()
             self._remote_player_icon_labels_text[i] = Label(
                 self._remote_player_icon_labels[i],
-                text=remote_players[i].get_nickname(),
+                text=remote_player_nickname,
                 bg=self._primary_color,
                 fg="white",
                 font=("Inter", 10, "bold"),
@@ -406,10 +395,8 @@ class PlayerInterface(DogPlayerInterface):
             self._remote_player_icon_labels_text[i].place(x=0, y=110, width=110, height=30)
 
     def _set_local_player_icon_name(self) -> None:
-        if self._match == None or not self._match.is_running:
-            return
-
-        local_player_nickname = self._match.get_local_player().get_nickname() 
+        local_player = self._match.get_local_player()
+        local_player_nickname = local_player.get_nickname() 
         self._local_player_icon_label_text = Label(
             self._local_player_icon_label,
             text=local_player_nickname,
@@ -450,10 +437,7 @@ class PlayerInterface(DogPlayerInterface):
         return "assets/others/discard-pile-default.png"
 
     def _set_discard_pile_card(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-
-        card_id = self._match.get_current_round().get_discard_pile().get_id()
+        card_id = self._match.get_discard_pile_card_id()
         self._set_discard_pile_img(f"assets/cards/{card_id}.png")
 
     def _set_discard_pile_img(self, img_path: str) -> None:
@@ -515,19 +499,18 @@ class PlayerInterface(DogPlayerInterface):
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
                 
     def _set_local_player_board(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-
         local_player_board = self._match.get_local_player_board()        
         for row in range(2):
             for col in range(3):
                 card = local_player_board.get_card_in_position(row, col)
                 card_id = card.get_id()
-                
-                img = Image.open(f"assets/cards/{card_id}.png")
-                img = img.resize((125, 196))
-                img = ImageTk.PhotoImage(img)
-                if not card.is_face_up():
+                is_face_up = card.is_face_up()
+
+                if is_face_up:
+                    img = Image.open(f"assets/cards/{card_id}.png")
+                    img = img.resize((125, 196))
+                    img = ImageTk.PhotoImage(img)
+                else:
                     img = self._local_player_card_back_img
                 
                 self._local_player_board_card_imgs[row][col] = img
@@ -538,7 +521,7 @@ class PlayerInterface(DogPlayerInterface):
                     bd=0,
                     highlightthickness=0,
                     activebackground=self._bg_color,
-                    command=lambda c=card_id: self._on_card_click(c)
+                    command=lambda row=row, col=col: self.play_card(False, row, col)
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
 
@@ -556,32 +539,30 @@ class PlayerInterface(DogPlayerInterface):
         self._local_player_hand_label.place_forget()  # initially invisible
     
     def _set_local_player_hand(self) -> None:
-        if self._match is None or not self._match.is_running():
-            return
-
         current_player = self._match.get_current_player()
+        current_player_id = current_player.get_id()
         local_player = self._match.get_local_player()
+        local_player_id = local_player.get_id()
 
         # Check if it's the local player's turn
-        if current_player.get_id() != local_player.get_id():
+        if current_player_id == local_player_id:
+            board = self._match.get_local_player_board()
+            hand = board.get_hand()
+
+            if hand is None:
+                self._local_player_hand_label.place_forget()
+            else:
+                # Load the image of the card in hand
+                card_id = hand.get_id()
+
+                img = Image.open(f"assets/cards/{card_id}.png").resize((148, 231))
+                img = ImageTk.PhotoImage(img)
+                self._local_player_hand_img = img
+                self._local_player_hand_label.configure(image=img)
+                self._local_player_hand_label.place(x=403, y=668, width=148, height=231)
+        else:
             self._local_player_hand_label.place_forget()
-            return
-
-        board = self._match.get_local_player_board()
-        hand = board.get_hand()
-
-        if hand is None:
-            self._local_player_hand_label.place_forget()
-            return
-
-        # Load the image of the card in hand
-        card_id = hand.get_id()
-
-        img = Image.open(f"assets/cards/{card_id}.png").resize((148, 231))
-        img = ImageTk.PhotoImage(img)
-        self._local_player_hand_img = img
-        self._local_player_hand_label.configure(image=img)
-        self._local_player_hand_label.place(x=403, y=668, width=148, height=231)
+            
 
     ###################################################################################################
     ### REMOTE PLAYER BOARDS                                                                        ###
@@ -615,23 +596,21 @@ class PlayerInterface(DogPlayerInterface):
                 )
                 self._remote_player_card_labels[player_index][row][col].grid(row=row, column=col, padx=5, pady=5)
 
-    def _set_remote_players_boards(self) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-        
+    def _set_remote_players_boards(self) -> None:        
         remote_players_boards = self._match.get_remote_players_boards()
         for i in range(2):
             self._set_remote_player_cards(i, remote_players_boards[i])
 
-    def _set_remote_player_cards(self, player_index, remote_player_board: Board) -> None:        
+    def _set_remote_player_cards(self, player_index: int, remote_player_board: Board) -> None:        
         for row in range(2):
             for col in range(3):
                 card = remote_player_board.get_card_in_position(row, col)
                 card_id = card.get_id()
+                is_face_up = card.is_face_up()
                 img = Image.open(f"assets/cards/{card_id}.png")
                 img = img.resize((90, 141))
                 img = ImageTk.PhotoImage(img)
-                if not card.is_face_up():
+                if not is_face_up:
                     img = self._remote_player_card_back_img
 
                 self._remote_players_board_card_imgs[player_index][row][col] = img
@@ -659,17 +638,21 @@ class PlayerInterface(DogPlayerInterface):
             self.dog_server_interface.send_move(a_move)
             self._init_game_frame()
             self._update_interface()
+            if not self._match.is_local_player_turn():
+                self.disable_all_destinations()
 
     def receive_start(self, start_status: StartStatus) -> None:
-        if start_status.get_code() != '2':
+        if start_status.get_code() == '2':
+            players = start_status.get_players()
+            local_id = start_status.local_id()
+            self._match = Match(players, local_id)
+            self._match.set_as_running()
+            self._init_game_frame()
+            self.disable_all_destinations()
+        else:
             messagebox.showerror("Failed to start match")
             self._window.quit()
-            return
-        
-        self._match = Match(start_status.get_players(), start_status.get_local_id())
-        self._match.set_as_running()
-        self._init_game_frame()
-
+            
     def receive_move(self, a_move: dict) -> None:
         if self._match == None or not self._match.is_running():
             return
@@ -678,33 +661,58 @@ class PlayerInterface(DogPlayerInterface):
         # self._match.load_match_from_move(a_move)
         # self._update_interface()
 
+    def receive_withdrawal_notification(self):
+        messagebox.showerror("Someone forfeited the game")
+        self._window.quit()
+        return
+    
+    def end_match_locally(self) -> None:
+        scoreboard_string = self._match.get_players_scoreboard_string()
+        messagebox.showinfo(scoreboard_string)
+        self._window.quit()
+
+
     ####################################################################################################
     ### Event Handlers                                                                               ###
     ####################################################################################################
 
-    def _on_card_click(self, card_id: str) -> None:
-        if self._match == None:
-            return
+    def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
+        if is_discard_pile_click:
+            self._match.discard_hand()
+            self.enable_destinations(True, False, False)
+        else:
+            self._match.swap_card_by_hand(row, col)
+            self._end_of_turn()
         
-        print(f"Card {card_id} clicked")
+    def reveal_card(self, row: int, col: int) -> None:
+        self._match.reveal_card(row, col)
+        self._end_of_turn()
+
+    def end_of_turn(self):
+        self._match.end_of_turn()
+
+        is_finished = not self._match.is_running()
+        if is_finished:
+            self.end_match_locally()
+        
+        a_move = self._match.get_move_dict()
+        self.dog_server_interface.send_move(a_move)
+
+        self._update_interface()
+        self.disable_all_destinations()
+    
+    def end_match_locally():
+        pass
 
     def _on_draw_click(self, from_deck: bool) -> None:
-        if self._match == None:
+        if self._match == None or not self._match.is_running():
             return
 
-        board = self._match.get_local_player_board()
-
         if from_deck:
-            card = self._match.get_current_round().get_deck().draw_card()
+            self._match.get_current_round().draw_card_from_deck()
+            self.enable_destinations(True, True, False)
         else:
-            card = self._match.get_current_round().get_discard_pile()
+            self._match.get_current_round().get_discard_pile()
+            self.enable_destinations(True, False, False)
         
-        board.add_card_to_hand(card)
-        self._set_local_player_hand() # show the card in hand
-
-        if from_deck:
-            self.enable_destinations(True, True)
-        else:
-            self.enable_destinations(True, False)
-
-        self._match.play_card(from_deck)
+        self._update_interface()

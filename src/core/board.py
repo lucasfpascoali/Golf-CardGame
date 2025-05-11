@@ -50,33 +50,31 @@ class Board:
     def reveal_card(self, row: int, column: int) -> None:        
         self._matrix[row][column].reveal()
 
+    def reveal_board(self) -> None:
+        for row in range(2):
+            for col in range(3):
+                self._matrix[row][col].reveal() 
+
     def swap_cards(self, row: int, column: int) -> None:
-        if self._hand is None:
-            raise ValueError("Hand is empty")
-        
-        if self._matrix[row][column] is None:
-            raise ValueError("Position is empty")
-        
         self._matrix[row][column], self._hand = self._hand, self._matrix[row][column]
         self._hand.reveal()
 
-    def load_matrix(self, cards: list[Card]) -> None:
-        if len(cards) != 6:
-            raise ValueError("There must be 6 cards")
-        
+    def is_all_cards_revealed(self) -> bool:
+        for row in range(2):
+            for col in range(3):
+                if not self._matrix[row][col].is_face_up():
+                    return False
+                
+        return True
+
+    def load_matrix(self, cards: list[Card]) -> None:        
         for row in range(2):
             for column in range(3):
-                self._set_card_in_position(cards[row * 3 + column], row, column)
+                self._matrix[row][column] = cards[row * 3 + column]
 
     def _get_two_random_cards_pos(self) -> list[tuple[int, int]]:
         positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
         return random.sample(positions, 2)
-
-    def _set_card_in_position(self, card: Card, row: int, column: int) -> None:
-        if self._matrix[row][column] is not None:
-            self._hand = self._matrix[row][column]
-        
-        self._matrix[row][column] = card
 
     
         
