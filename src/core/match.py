@@ -10,7 +10,7 @@ from dog.dog_actor import DogActor
 #       round_number : int,
 #       deck: list[str], -> string vai ser o card id, a partir dele construímos as cartas (cartas do baralho são sempre face-up false)
 #       discard_pile: str, -> string do card id, face up vai ser sempre true
-#       boards: list[dict], -> um dict para cada board, o dict vai ter o player_id e um matrix (duas listas para o grid 2x3, cada posicao do grid possui um dict com card id e face up)
+#       boards: dict, -> um dict para cada board, o dict vai ter o player_id e um matrix (duas listas para o grid 2x3, cada posicao do grid possui um dict com card id e face up)
 #       current_player_order: int
 #   }
 #   "scores": dict[str, int] -> mapeia o id do player para um inteiro representando a pontuação do jogador 
@@ -29,7 +29,7 @@ class Match:
 
     def load_match(self, a_move: dict) -> None:
         self._current_round = Round(a_move["current_round"]["round_number"])
-        self._current_round.load_round(a_move["current_round"])
+        self._current_round.load_round(a_move["current_round"], self._players)
         self._load_score(a_move["scores"])
         if a_move["match_status"] == "finished":
             self.set_as_finished()
@@ -150,7 +150,9 @@ class Match:
     def _get_players_scores_dict(self) -> dict[str, int]:
         scores_dict = {}
         for player in self._players:
-            scores_dict[player.get_nickname()] = player.get_score()
+            scores_dict[player.get_id()] = player.get_score()
+
+        return scores_dict
 
     def _get_player_by_order(self, order: int) -> Player:
         for player in self._players:

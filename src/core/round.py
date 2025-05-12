@@ -18,10 +18,11 @@ class Round:
         self._discard_pile = self._deck.draw_card()
         self.create_boards(players)
 
-    def load_round(self, round_state_dict: dict) -> None:
+    def load_round(self, round_state_dict: dict, players: list[Player]) -> None:
         self._current_player_order = round_state_dict["current_player_order"]
         self._deck.load_deck(round_state_dict["deck"])
         self._load_discard_pile(round_state_dict["discard_pile"])
+        self._boards = [Board(players[0], [None, None, None, None, None, None]), Board(players[1], [None, None, None, None, None, None]), Board(players[2], [None, None, None, None, None, None])]
         self._load_boards(round_state_dict["boards"])
 
     def _load_discard_pile(self, card_id: str) -> None:
@@ -118,10 +119,10 @@ class Round:
             if board.get_player().get_id() == player_id:
                 return board
     
-    def _get_boards_state(self) -> list[dict]:
-        boards_state: list[dict] = []
+    def _get_boards_state(self) -> dict:
+        boards_state: dict = {}
         for board in self._boards:
-            boards_state.append(board.get_board_state_dict())
+            boards_state[board.get_player().get_id()] = board.get_board_state_dict()
 
         return boards_state
     

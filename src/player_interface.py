@@ -644,7 +644,7 @@ class PlayerInterface(DogPlayerInterface):
     def receive_start(self, start_status: StartStatus) -> None:
         if start_status.get_code() == '2':
             players = start_status.get_players()
-            local_id = start_status.local_id()
+            local_id = start_status.get_local_id()
             self._match = Match(players, local_id)
             self._match.set_as_running()
             self._init_game_frame()
