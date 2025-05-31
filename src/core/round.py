@@ -95,12 +95,9 @@ class Round:
     def set_next_player(self) -> None:
         self._current_player_order = (self._current_player_order % 3) + 1
 
-    def is_round_finished(self) -> bool:
-        for board in self._boards:
-            if not board.is_all_cards_revealed():
-                return False
-            
-        return True
+    def is_round_finished(self, current_player_id: str) -> bool:
+        board = self.get_board_by_player_id(current_player_id)
+        return board.is_all_cards_revealed()
 
     def _clear_discard_pile(self) -> None:
         self._discard_pile = None

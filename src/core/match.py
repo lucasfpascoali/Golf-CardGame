@@ -67,9 +67,9 @@ class Match:
         self._current_round.reveal_card(self._local_player_id, row, column)
 
     def end_of_turn(self, dog: DogActor) -> None:
-        is_round_finished = self._current_round.is_round_finished()
+        is_round_finished = self._current_round.is_round_finished(self._local_player_id)
         if is_round_finished:
-            self._match.show_round_results()
+            self.show_round_results()
             round_number = self._current_round.get_round_number()
             if round_number == 9:
                 self.set_as_finished()
