@@ -606,18 +606,20 @@ class PlayerInterface(DogPlayerInterface):
                 card = remote_player_board.get_card_in_position(row, col)
                 card_id = card.get_id()
                 is_face_up = card.is_face_up()
-                img = Image.open(f"assets/cards/{card_id}.png")
-                img = img.resize((90, 141))
-                img = ImageTk.PhotoImage(img)
-                if not is_face_up:
+
+                if is_face_up:
+                    img = Image.open(f"assets/cards/{card_id}.png")
+                    img = img.resize((90, 141))
+                    img = ImageTk.PhotoImage(img)
+                else:
                     img = self._remote_player_card_back_img
 
                 self._remote_players_board_card_imgs[player_index][row][col] = img
-                self._remote_player_card_labels[player_index][row].append(Label(
+                self._remote_player_card_labels[player_index][row][col] = Label(
                     self._remote_players_board_frames[player_index],
                     image=self._remote_players_board_card_imgs[player_index][row][col],
                     bg=self._bg_color
-                ))
+                )
                 self._remote_player_card_labels[player_index][row][col].grid(row=row, column=col, padx=5, pady=5)
 
     ####################################################################################################
