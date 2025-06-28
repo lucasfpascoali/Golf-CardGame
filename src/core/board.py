@@ -29,11 +29,8 @@ class Board:
     def get_hand(self) -> Card:
         return self._hand
 
-    def add_card_to_hand(self, card: Card) -> None:
-        if self._hand is not None:
-            raise ValueError("Hand already has a card")
-        
-        self._hand = card
+    def add_card_to_hand(self, card: Card) -> None:    
+        self._hand = card # TODO: Possible change in VPS
 
     def clear_hand(self) -> None:
         self._hand = None
@@ -56,6 +53,7 @@ class Board:
         self._hand.reveal()
 
     def is_all_cards_revealed(self) -> bool:
+        print(self._matrix)
         for row in range(2):
             for col in range(3):
                 if not self._matrix[row][col].is_face_up():

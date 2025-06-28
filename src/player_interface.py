@@ -113,7 +113,7 @@ class PlayerInterface(DogPlayerInterface):
     ### GUI + Game State Control                                                                    ###
     ###################################################################################################
 
-    def _update_interface(self):
+    def _update_interface(self, discard_pile_has_discard_action: bool) -> None:
         self._set_local_player_board()
         self._set_local_player_icon_name()
         self._set_local_player_hand()
@@ -124,6 +124,9 @@ class PlayerInterface(DogPlayerInterface):
         self._set_players_label()
         self._set_player_turn_label()
 
+        if discard_pile_has_discard_action:
+            self._discard_pile_btn.configure(command=lambda: self.play_card(True, 0, 0))
+            
     def _enable_clicks(self, allow_board: bool, allow_discard: bool, allow_deck: bool) -> None:
         # Enable/disable the local player card buttons
         for row in range(2):
@@ -438,6 +441,10 @@ class PlayerInterface(DogPlayerInterface):
 
     def _set_discard_pile_card(self) -> None:
         card_id = self._match.get_discard_pile_card_id()
+        if card_id == "":
+            self._discard_pile_btn.place_forget()
+            return
+
         self._set_discard_pile_img(f"assets/cards/{card_id}.png")
 
     def _set_discard_pile_img(self, img_path: str) -> None:
@@ -523,6 +530,23 @@ class PlayerInterface(DogPlayerInterface):
                     command=lambda row=row, col=col: self.play_card(False, row, col)
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
+
+    # TODO: add to VPS ??
+    def _set_local_player_board_cards_to_reveal_action(self) -> None:
+        local_player_board = self._match.get_local_player_board()
+        for row in range(2):
+            for col in range(3):
+                card = local_player_board.get_card_in_position(row, col)
+                is_face_up = card.is_face_up()
+                if is_face_up:
+                    self._local_player_card_btn[row][col].configure(
+                        state="disabled"
+                    )
+                else:
+                    self._local_player_card_btn[row][col].configure(
+                        command=lambda row=row, col=col: self.reveal_card(row, col)
+                    )
+                    
 
     ##################################################################################################
     ### LOCAL PLAYER HAND                                                                          ###
@@ -632,15 +656,20 @@ class PlayerInterface(DogPlayerInterface):
         messagebox.showinfo(message=message)
 
         code = start_status.get_code()
-        if code == '2':
+        if code == '2': 
             players = start_status.get_players()
             local_id = start_status.get_local_id()
             self._match = Match(players, local_id)
-            self._match.start_match(self.dog_server_interface)
+            a_move = self._match.start_match() # TODO: Change to be made to VPS
+            print(a_move)
+            self.dog_server_interface.send_move(a_move) # TODO: Change to be made to VPS
             self._init_game_frame()
-            self._update_interface()
+            self._update_interface(False)
             turn = self._match.is_local_player_turn()
-            if not turn:
+            # TODO: Change to be made to VPS (the if else statement)
+            if turn:
+                self._enable_clicks(False, True, True)
+            else:
                 self._disable_all_clicks()
 
     def receive_start(self, start_status: StartStatus) -> None:
@@ -656,15 +685,16 @@ class PlayerInterface(DogPlayerInterface):
             self._window.quit()
             
     def receive_move(self, a_move: dict) -> None:
+        print("-------------- Function receive_move --------------")
         self._match.load_match(a_move)
-        self._update_interface()
+        self._update_interface(False)
         is_finished = not self._match.is_running()
         if is_finished:
             self.end_match_locally()
         else:
             turn = self._match.is_local_player_turn()
             if turn:
-                self._enable_clicks(True, True, True)
+                self._enable_clicks(False, True, True) # TODO: Change to be made to VPS
             else:
                 self._disable_all_clicks()
 
@@ -684,16 +714,13 @@ class PlayerInterface(DogPlayerInterface):
     ####################################################################################################
 
     def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
+        print("-------------- Function play_card --------------")
         if is_discard_pile_click:
+            print("Fui executado com True")
             self._match.discard_hand()
+            self._update_interface(False)
             self._enable_clicks(True, False, False)
-            for i in range(2):
-                for j in range(3):
-                    if "assets/cards/back.png" in self._local_player_card_btn[i][j].image_names():
-                        self._local_player_card_btn[i][j].configure(state="disabled")
-                    else:
-                        self._local_player_card_btn[i][j].configure(command=lambda: self.reveal_card(i, j))
-                    
+            self._set_local_player_board_cards_to_reveal_action()
         else:
             self._match.swap_card_by_hand(row, col)
             self._end_of_turn()
@@ -702,18 +729,19 @@ class PlayerInterface(DogPlayerInterface):
         self._match.reveal_card(row, col)
         self._end_of_turn()
 
+    # TODO: Change to be made to VPS
     def _end_of_turn(self):
-        self._match.end_of_turn(self.dog_server_interface)
+        a_move = self._match.end_of_turn()
+        self.dog_server_interface.send_move(a_move)
+        self._update_interface(False)
+        self._disable_all_clicks()
 
         is_finished = not self._match.is_running()
         if is_finished:
             self.end_match_locally()
         
-        a_move = self._match.get_move_dict()
-        self.dog_server_interface.send_move(a_move)
-
-        self._update_interface()
-        self._disable_all_clicks()
+    
+        
     
     def end_match_locally():
         pass
@@ -721,13 +749,12 @@ class PlayerInterface(DogPlayerInterface):
     def _on_draw_click(self, from_deck: bool) -> None:
         if self._match == None or not self._match.is_running():
             return
-
+        
         if from_deck:
-            self._discard_pile_btn.configure(command=lambda: self._match.discard_hand())
             self._match.draw_card_from_deck()
             self._enable_clicks(True, True, False)
         else:
             self._match.draw_card_from_discard_pile()
             self._enable_clicks(True, False, False)
         
-        self._update_interface()
+        self._update_interface(True)

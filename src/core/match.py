@@ -23,9 +23,12 @@ class Match:
         self._local_player_id = local_id
         self._is_running: bool = False
 
-    def start_match(self, dog: DogActor) -> None:        
+    # TODO: changes to VPS
+    def start_match(self) -> dict:        
         self.set_as_running()
-        self.start_round(1, dog)
+        self.start_round(1)
+        a_move = self.get_move_dict()
+        return a_move
 
     def load_match(self, a_move: dict) -> None:
         self._current_round = Round(a_move["current_round"]["round_number"])
@@ -45,11 +48,12 @@ class Match:
     def set_as_finished(self) -> None:
         self._is_running = False
 
-    def start_round(self, round_number: int, dog: DogActor) -> None:        
+    # TODO: changes to VPS
+    def start_round(self, round_number: int) -> None:        
         self._current_round = Round(round_number)
         self._current_round.start_round(self._players) 
-        a_move = self.get_move_dict()
-        dog.send_move(a_move)
+        # a_move = self.get_move_dict()
+        # dog.send_move(a_move)
 
     def draw_card_from_deck(self) -> None:
         self._current_round.draw_card_from_deck(self._local_player_id)
@@ -66,7 +70,8 @@ class Match:
     def reveal_card(self, row: int, column: int) -> None:
         self._current_round.reveal_card(self._local_player_id, row, column)
 
-    def end_of_turn(self, dog: DogActor) -> None:
+    # TODO: changes to VPS
+    def end_of_turn(self) -> dict:
         is_round_finished = self._current_round.is_round_finished(self._local_player_id)
         if is_round_finished:
             self.show_round_results()
@@ -74,13 +79,16 @@ class Match:
             if round_number == 9:
                 self.set_as_finished()
             else:
-                self.start_round(round_number + 1, dog)
+                self.start_round(round_number + 1)
         else:
             self._current_round.set_next_player()
 
+        a_move = self.get_move_dict()
+        return a_move
+
     def show_round_results(self) -> None:
         players = self.get_players()
-        for i in range(2):
+        for i in range(3):
             player_id = players[i].get_id()
             self._current_round.calculate_score(player_id)
             self._current_round.reveal_player_board(player_id)
@@ -125,6 +133,9 @@ class Match:
 
     def get_discard_pile_card_id(self) -> str:
         card = self._current_round.get_discard_pile()
+        if card == None:
+            return "" # TODO: Change to be made to VPS
+
         return card.get_id()
     
     def get_round_number(self) -> int:
