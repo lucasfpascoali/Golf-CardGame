@@ -70,8 +70,6 @@ class Round:
 
     def draw_card_from_discard_pile(self, player_id: str) -> None:
         card = self.get_discard_pile()
-        print("----------------------------")
-        print("Drawing card from discard pile:", card.get_id())
         board = self.get_board_by_player_id(player_id)
         self._clear_discard_pile()
         board.add_card_to_hand(card)

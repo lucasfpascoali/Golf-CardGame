@@ -53,7 +53,6 @@ class Board:
         self._hand.reveal()
 
     def is_all_cards_revealed(self) -> bool:
-        print(self._matrix)
         for row in range(2):
             for col in range(3):
                 if not self._matrix[row][col].is_face_up():

@@ -55,6 +55,14 @@ class Match:
         # a_move = self.get_move_dict()
         # dog.send_move(a_move)
 
+    def end_round(self) -> None:
+        round_number = self._current_round.get_round_number()
+        if round_number == 9:
+            self.set_as_finished()
+
+        self.reveal_all_boards()
+        self.show_round_results()
+
     def draw_card_from_deck(self) -> None:
         self._current_round.draw_card_from_deck(self._local_player_id)
 
@@ -67,24 +75,18 @@ class Match:
     def swap_card_by_hand(self, row: int, column: int) -> None:
         self._current_round.swap_card_by_hand(self._local_player_id, row, column)
 
+    # TODO: add to VPS
+    def reveal_all_boards(self) -> None:
+        players = self.get_players()
+        for player in players:
+            self._current_round.reveal_player_board(player.get_id())
+
     def reveal_card(self, row: int, column: int) -> None:
         self._current_round.reveal_card(self._local_player_id, row, column)
 
     # TODO: changes to VPS
-    def end_of_turn(self) -> dict:
-        is_round_finished = self._current_round.is_round_finished(self._local_player_id)
-        if is_round_finished:
-            self.show_round_results()
-            round_number = self._current_round.get_round_number()
-            if round_number == 9:
-                self.set_as_finished()
-            else:
-                self.start_round(round_number + 1)
-        else:
-            self._current_round.set_next_player()
-
-        a_move = self.get_move_dict()
-        return a_move
+    def end_of_turn(self) -> None:
+        self._current_round.set_next_player()
 
     def show_round_results(self) -> None:
         players = self.get_players()
@@ -98,6 +100,9 @@ class Match:
 
     def is_running(self) -> bool:
         return self._is_running
+    
+    def is_round_finished(self) -> bool:
+        return self._current_round.is_round_finished(self._local_player_id)
     
     def get_players(self) -> list[Player]:
         return self._players

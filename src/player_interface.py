@@ -661,7 +661,6 @@ class PlayerInterface(DogPlayerInterface):
             local_id = start_status.get_local_id()
             self._match = Match(players, local_id)
             a_move = self._match.start_match() # TODO: Change to be made to VPS
-            print(a_move)
             self.dog_server_interface.send_move(a_move) # TODO: Change to be made to VPS
             self._init_game_frame()
             self._update_interface(False)
@@ -683,9 +682,16 @@ class PlayerInterface(DogPlayerInterface):
         else:
             messagebox.showerror("Failed to start match")
             self._window.quit()
-            
+
+    # TODO: Change to be made to VPS    
     def receive_move(self, a_move: dict) -> None:
-        print("-------------- Function receive_move --------------")
+        if "end_of_round" in a_move and a_move["end_of_round"]:
+            current_player = self._match.get_current_player()
+            current_player_nickname = current_player.get_nickname()
+            self._match.load_match(a_move["previous_state"])
+            self._update_interface(False)
+            messagebox.showinfo(title="Fim da rodada", message=f"A rodada terminou pois o jogador {current_player_nickname} revelou todas as suas cartas. Ao clicar em OK, a próxima rodada começará.")
+
         self._match.load_match(a_move)
         self._update_interface(False)
         is_finished = not self._match.is_running()
@@ -714,9 +720,8 @@ class PlayerInterface(DogPlayerInterface):
     ####################################################################################################
 
     def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
-        print("-------------- Function play_card --------------")
+        print(f"play_card: is_discard_pile_click={is_discard_pile_click}, row={row}, col={col}")
         if is_discard_pile_click:
-            print("Fui executado com True")
             self._match.discard_hand()
             self._update_interface(False)
             self._enable_clicks(True, False, False)
@@ -731,18 +736,34 @@ class PlayerInterface(DogPlayerInterface):
 
     # TODO: Change to be made to VPS
     def _end_of_turn(self):
-        a_move = self._match.end_of_turn()
+        is_round_finished = self._match.is_round_finished()
+        if is_round_finished:
+            self._match.end_round()
+            self._update_interface(False)
+            messagebox.showinfo(title="Fim da rodada", message="A rodada terminou pois você revelou todas as suas cartas. Ao clicar em OK, a próxima rodada começará.")
+            is_running = self._match.is_running()
+            if not is_running:
+                self.end_match_locally()
+            else:
+                previousState = self._match.get_move_dict()
+                self._match.start_round(previousState["current_round"]["round_number"] + 1)
+                a_move = self._match.get_move_dict()
+                a_move["end_of_round"] = True
+                a_move["previous_state"] = previousState
+                self._update_interface(False)
+                turn = self._match.is_local_player_turn()
+                if turn:
+                    self._enable_clicks(False, True, True)
+                else:
+                    self._disable_all_clicks()
+        else:
+            self._match.end_of_turn()
+            self._update_interface(False)
+            self._disable_all_clicks()
+            a_move = self._match.get_move_dict()
+                
         self.dog_server_interface.send_move(a_move)
-        self._update_interface(False)
-        self._disable_all_clicks()
 
-        is_finished = not self._match.is_running()
-        if is_finished:
-            self.end_match_locally()
-        
-    
-        
-    
     def end_match_locally():
         pass
 
@@ -750,7 +771,9 @@ class PlayerInterface(DogPlayerInterface):
         if self._match == None or not self._match.is_running():
             return
         
+        print("on_draw_click")
         if from_deck:
+            print("draw from deck")
             self._match.draw_card_from_deck()
             self._enable_clicks(True, True, False)
         else:
