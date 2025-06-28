@@ -55,7 +55,20 @@ class Round:
         return cards
 
     def calculate_score(self, player_id: str) -> None:
-       pass
+        board = self.get_board_by_player_id(player_id)
+        total_score = 0
+        for col in range(3):
+            top_card = board.get_card_in_position(0, col)
+            bottom_card = board.get_card_in_position(1, col)
+            if top_card.get_value() == bottom_card.get_value():
+                col_score = 0
+            else:
+                col_score = top_card.get_score() + bottom_card.get_score()
+            
+            total_score += col_score
+        
+        player = board.get_player()
+        player.set_score(player.get_score() + total_score)
 
     def create_boards(self, players: list[Player]) -> None:
         for i in range(3):

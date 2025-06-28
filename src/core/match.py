@@ -60,7 +60,6 @@ class Match:
         if round_number == 9:
             self.set_as_finished()
 
-        self.reveal_all_boards()
         self.show_round_results()
 
     def draw_card_from_deck(self) -> None:
@@ -74,12 +73,6 @@ class Match:
 
     def swap_card_by_hand(self, row: int, column: int) -> None:
         self._current_round.swap_card_by_hand(self._local_player_id, row, column)
-
-    # TODO: add to VPS
-    def reveal_all_boards(self) -> None:
-        players = self.get_players()
-        for player in players:
-            self._current_round.reveal_player_board(player.get_id())
 
     def reveal_card(self, row: int, column: int) -> None:
         self._current_round.reveal_card(self._local_player_id, row, column)

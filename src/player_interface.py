@@ -705,7 +705,7 @@ class PlayerInterface(DogPlayerInterface):
                 self._disable_all_clicks()
 
     def receive_withdrawal_notification(self):
-        messagebox.showerror("Someone forfeited the game")
+        messagebox.showerror(title="End of Game", message="A partida foi encerrada pois um jogador se retirou.")
         self._window.quit()
         return
     
