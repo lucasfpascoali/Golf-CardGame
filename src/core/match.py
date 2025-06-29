@@ -1,7 +1,6 @@
 from core.player import Player
 from core.round import Round
 from core.board import Board
-from dog.dog_actor import DogActor
 
 # Move Object Structure
 # a_move = {
@@ -23,7 +22,6 @@ class Match:
         self._local_player_id = local_id
         self._is_running: bool = False
 
-    # TODO: changes to VPS
     def start_match(self) -> dict:        
         self.set_as_running()
         self.start_round(1)
@@ -48,12 +46,9 @@ class Match:
     def set_as_finished(self) -> None:
         self._is_running = False
 
-    # TODO: changes to VPS
     def start_round(self, round_number: int) -> None:        
         self._current_round = Round(round_number)
-        self._current_round.start_round(self._players) 
-        # a_move = self.get_move_dict()
-        # dog.send_move(a_move)
+        self._current_round.start_round(self._players)
 
     def end_round(self) -> None:
         round_number = self._current_round.get_round_number()
@@ -77,7 +72,6 @@ class Match:
     def reveal_card(self, row: int, column: int) -> None:
         self._current_round.reveal_card(self._local_player_id, row, column)
 
-    # TODO: changes to VPS
     def end_of_turn(self) -> None:
         self._current_round.set_next_player()
 
@@ -95,7 +89,8 @@ class Match:
         return self._is_running
     
     def is_round_finished(self) -> bool:
-        return self._current_round.is_round_finished(self._local_player_id)
+        is_round_finished = self._current_round.is_round_finished(self._local_player_id)
+        return is_round_finished
     
     def get_players(self) -> list[Player]:
         return self._players
@@ -132,9 +127,10 @@ class Match:
     def get_discard_pile_card_id(self) -> str:
         card = self._current_round.get_discard_pile()
         if card == None:
-            return "" # TODO: Change to be made to VPS
-
-        return card.get_id()
+            card_id = "" 
+        else:
+            card_id = card.get_id()
+        return card_id
     
     def get_round_number(self) -> int:
         return self._current_round.get_round_number()
@@ -148,16 +144,6 @@ class Match:
                 winner = player
         
         return winner
-
-    def get_players_scoreboard_string(self) -> str:
-        scoreboard_dict = self._get_players_scores_dict()
-        return self._format_scoreboard(scoreboard_dict)
-
-    def _format_scoreboard(self, scoreboard_dict: dict[str, int]) -> str:
-        # Ordena pelo score ascendente (menor primeiro)
-        sorted_players = sorted(scoreboard_dict.items(), key=lambda kv: kv[1])
-        # Monta as linhas e junta com “\n”
-        return "\n".join(f"{player}: {score} pts" for player, score in sorted_players)
 
     def get_move_dict(self) -> dict:
         a_move: dict = {}

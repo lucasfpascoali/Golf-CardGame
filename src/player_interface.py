@@ -531,7 +531,6 @@ class PlayerInterface(DogPlayerInterface):
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
 
-    # TODO: add to VPS ??
     def _set_local_player_board_cards_to_reveal_action(self) -> None:
         local_player_board = self._match.get_local_player_board()
         for row in range(2):
@@ -660,12 +659,11 @@ class PlayerInterface(DogPlayerInterface):
             players = start_status.get_players()
             local_id = start_status.get_local_id()
             self._match = Match(players, local_id)
-            a_move = self._match.start_match() # TODO: Change to be made to VPS
-            self.dog_server_interface.send_move(a_move) # TODO: Change to be made to VPS
+            a_move = self._match.start_match()
+            self.dog_server_interface.send_move(a_move)
             self._init_game_frame()
             self._update_interface(False)
             turn = self._match.is_local_player_turn()
-            # TODO: Change to be made to VPS (the if else statement)
             if turn:
                 self._enable_clicks(False, True, True)
             else:
@@ -683,38 +681,31 @@ class PlayerInterface(DogPlayerInterface):
             messagebox.showerror("Failed to start match")
             self._window.quit()
 
-    # TODO: Change to be made to VPS    
     def receive_move(self, a_move: dict) -> None:
         if "end_of_round" in a_move and a_move["end_of_round"]:
             current_player = self._match.get_current_player()
             current_player_nickname = current_player.get_nickname()
             self._match.load_match(a_move["previous_state"])
             self._update_interface(False)
-            messagebox.showinfo(title="Fim da rodada", message=f"A rodada terminou pois o jogador {current_player_nickname} revelou todas as suas cartas. Ao clicar em OK, a próxima rodada começará.")
+            messagebox.showinfo(title="End of round", message=f"The round has finished as the player {current_player_nickname} revealed all their cards. Click OK to start the next round.")
 
         self._match.load_match(a_move)
         self._update_interface(False)
         is_finished = not self._match.is_running()
         if is_finished:
-            self.end_match_locally()
+            self._end_match_locally()
         else:
             turn = self._match.is_local_player_turn()
             if turn:
-                self._enable_clicks(False, True, True) # TODO: Change to be made to VPS
+                self._enable_clicks(False, True, True)
             else:
                 self._disable_all_clicks()
 
     def receive_withdrawal_notification(self):
-        messagebox.showerror(title="End of Game", message="A partida foi encerrada pois um jogador se retirou.")
+        messagebox.showerror(title="End of Game", message="The match has ended because a player has withdrawn. Thanks for playing!")
         self._window.quit()
         return
     
-    def end_match_locally(self) -> None:
-        scoreboard_string = self._match.get_players_scoreboard_string()
-        messagebox.showinfo(scoreboard_string)
-        self._window.quit()
-
-
     ####################################################################################################
     ### Event Handlers                                                                               ###
     ####################################################################################################
@@ -734,22 +725,21 @@ class PlayerInterface(DogPlayerInterface):
         self._match.reveal_card(row, col)
         self._end_of_turn()
 
-    # TODO: Change to be made to VPS
     def _end_of_turn(self):
         is_round_finished = self._match.is_round_finished()
         if is_round_finished:
             self._match.end_round()
             self._update_interface(False)
-            messagebox.showinfo(title="Fim da rodada", message="A rodada terminou pois você revelou todas as suas cartas. Ao clicar em OK, a próxima rodada começará.")
-            is_running = self._match.is_running()
-            previousState = self._match.get_move_dict()
+            messagebox.showinfo(title="End of round", message="The round has finished as you revealed all your cards. Click OK to start the next round.")
+            is_running = self._match.is_running()   
+            previous_state = self._match.get_move_dict()
             if is_running:
-                self._match.start_round(previousState["current_round"]["round_number"] + 1)
+                self._match.start_round(previous_state["current_round"]["round_number"] + 1)
             else:
-                self.end_match_locally()
+                self._end_match_locally()
             a_move = self._match.get_move_dict()
             a_move["end_of_round"] = True
-            a_move["previous_state"] = previousState
+            a_move["previous_state"] = previous_state
             self._update_interface(False)
             turn = self._match.is_local_player_turn()
             if turn:
@@ -764,8 +754,7 @@ class PlayerInterface(DogPlayerInterface):
                 
         self.dog_server_interface.send_move(a_move)
 
-    # TODO: Change to be made to VPS
-    def end_match_locally(self):
+    def _end_match_locally(self):
         winner = self._match.get_winner()
         winner_nickname = winner.get_nickname()
         winner_score = winner.get_score()

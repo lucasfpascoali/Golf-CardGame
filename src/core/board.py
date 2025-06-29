@@ -30,7 +30,7 @@ class Board:
         return self._hand
 
     def add_card_to_hand(self, card: Card) -> None:    
-        self._hand = card # TODO: Possible change in VPS
+        self._hand = card
 
     def clear_hand(self) -> None:
         self._hand = None
