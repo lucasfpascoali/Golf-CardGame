@@ -742,20 +742,20 @@ class PlayerInterface(DogPlayerInterface):
             self._update_interface(False)
             messagebox.showinfo(title="Fim da rodada", message="A rodada terminou pois você revelou todas as suas cartas. Ao clicar em OK, a próxima rodada começará.")
             is_running = self._match.is_running()
-            if not is_running:
-                self.end_match_locally()
-            else:
-                previousState = self._match.get_move_dict()
+            previousState = self._match.get_move_dict()
+            if is_running:
                 self._match.start_round(previousState["current_round"]["round_number"] + 1)
-                a_move = self._match.get_move_dict()
-                a_move["end_of_round"] = True
-                a_move["previous_state"] = previousState
-                self._update_interface(False)
-                turn = self._match.is_local_player_turn()
-                if turn:
-                    self._enable_clicks(False, True, True)
-                else:
-                    self._disable_all_clicks()
+            else:
+                self.end_match_locally()
+            a_move = self._match.get_move_dict()
+            a_move["end_of_round"] = True
+            a_move["previous_state"] = previousState
+            self._update_interface(False)
+            turn = self._match.is_local_player_turn()
+            if turn:
+                self._enable_clicks(False, True, True)
+            else:
+                self._disable_all_clicks()
         else:
             self._match.end_of_turn()
             self._update_interface(False)
@@ -764,8 +764,13 @@ class PlayerInterface(DogPlayerInterface):
                 
         self.dog_server_interface.send_move(a_move)
 
-    def end_match_locally():
-        pass
+    # TODO: Change to be made to VPS
+    def end_match_locally(self):
+        winner = self._match.get_winner()
+        winner_nickname = winner.get_nickname()
+        winner_score = winner.get_score()
+        messagebox.showinfo(title="End of Match", message=f"The match has ended. The winner is {winner_nickname} with {winner_score} pts. Thanks for playing!")
+        self._window.quit()
 
     def _on_draw_click(self, from_deck: bool) -> None:
         if self._match == None or not self._match.is_running():

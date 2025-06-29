@@ -138,6 +138,16 @@ class Match:
     
     def get_round_number(self) -> int:
         return self._current_round.get_round_number()
+    
+    def get_winner(self) -> Player:
+        min_score = -1
+        winner = None
+        for player in self._players:
+            if player.get_score() < min_score or min_score == -1:
+                min_score = player.get_score()
+                winner = player
+        
+        return winner
 
     def get_players_scoreboard_string(self) -> str:
         scoreboard_dict = self._get_players_scores_dict()
