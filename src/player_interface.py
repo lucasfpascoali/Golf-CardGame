@@ -762,12 +762,7 @@ class PlayerInterface(DogPlayerInterface):
         self._window.quit()
 
     def _on_draw_click(self, from_deck: bool) -> None:
-        if self._match == None or not self._match.is_running():
-            return
-        
-        print("on_draw_click")
         if from_deck:
-            print("draw from deck")
             self._match.draw_card_from_deck()
             self._enable_clicks(True, True, False)
         else:

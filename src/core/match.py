@@ -146,8 +146,11 @@ class Match:
         return winner
 
     def get_move_dict(self) -> dict:
-        a_move: dict = {}
-        a_move["match_status"] = "next" if self.is_running() else "finished"
+        a_move: dict = {}   
+        if self.is_running():
+            a_move["match_status"] = "next"
+        else:
+            a_move["match_status"] = "finished"
         a_move["current_round"] = self._current_round.get_state_dict()
         a_move["scores"] = self._get_players_scores_dict()
         return a_move

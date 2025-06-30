@@ -24,19 +24,13 @@ class Deck:
         
         return deck_state
 
-    def draw_card(self) -> Card:
-        if len(self._cards) == 0:
-            raise ValueError("Deck is empty")
-        
+    def draw_card(self) -> Card:        
         card = self._cards.pop()
         card.reveal()
 
         return card
 
-    def get_six_cards(self) -> list[Card]:
-        if len(self._cards) < 6:
-            raise ValueError("Not enough cards in the deck")
-        
+    def get_six_cards(self) -> list[Card]:        
         cards = []
         for _ in range(6):
             card = self._cards.pop()
@@ -45,13 +39,14 @@ class Deck:
         return cards
 
     def _get_default_deck(self) -> list[Card]:
+        cards = []
         suits = [Suit.CLUBS, Suit.DIAMONDS, Suit.HEARTS, Suit.SPADES]
         values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
         for suit in suits:
             for value in values:
                 card = Card(value, suit)
-                self._cards.append(card)
-        return self._cards
+                cards.append(card)
+        return cards
     
     def _shuffle(self):
         random.shuffle(self._cards)
