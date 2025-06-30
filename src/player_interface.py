@@ -125,7 +125,7 @@ class PlayerInterface(DogPlayerInterface):
         self._set_player_turn_label()
 
         if discard_pile_has_discard_action:
-            self._discard_pile_btn.configure(command=lambda: self.play_card(True, 0, 0))
+            self._discard_pile_btn.configure(command=lambda: self._play_card(True, 0, 0))
             
     def _enable_clicks(self, allow_board: bool, allow_discard: bool, allow_deck: bool) -> None:
         # Enable/disable the local player card buttons
@@ -527,7 +527,7 @@ class PlayerInterface(DogPlayerInterface):
                     bd=0,
                     highlightthickness=0,
                     activebackground=self._bg_color,
-                    command=lambda row=row, col=col: self.play_card(False, row, col)
+                    command=lambda row=row, col=col: self._play_card(False, row, col)
                 )
                 self._local_player_card_btn[row][col].grid(row=row, column=col, padx=10, pady=5)
 
@@ -543,7 +543,7 @@ class PlayerInterface(DogPlayerInterface):
                     )
                 else:
                     self._local_player_card_btn[row][col].configure(
-                        command=lambda row=row, col=col: self.reveal_card(row, col)
+                        command=lambda row=row, col=col: self._reveal_card(row, col)
                     )
                     
 
@@ -710,8 +710,7 @@ class PlayerInterface(DogPlayerInterface):
     ### Event Handlers                                                                               ###
     ####################################################################################################
 
-    def play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
-        print(f"play_card: is_discard_pile_click={is_discard_pile_click}, row={row}, col={col}")
+    def _play_card(self, is_discard_pile_click: bool, row: int, col: int) -> None:
         if is_discard_pile_click:
             self._match.discard_hand()
             self._update_interface(False)
@@ -721,7 +720,7 @@ class PlayerInterface(DogPlayerInterface):
             self._match.swap_card_by_hand(row, col)
             self._end_of_turn()
         
-    def reveal_card(self, row: int, col: int) -> None:
+    def _reveal_card(self, row: int, col: int) -> None:
         self._match.reveal_card(row, col)
         self._end_of_turn()
 
