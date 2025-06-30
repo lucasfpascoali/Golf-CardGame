@@ -136,10 +136,10 @@ class Match:
         return self._current_round.get_round_number()
     
     def get_winner(self) -> Player:
-        min_score = -1
+        min_score = -1000
         winner = None
         for player in self._players:
-            if player.get_score() < min_score or min_score == -1:
+            if player.get_score() < min_score or min_score == -1000:
                 min_score = player.get_score()
                 winner = player
         
