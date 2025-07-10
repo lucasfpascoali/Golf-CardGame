@@ -1,8 +1,8 @@
 <h1><img src="src/assets/others/logo.png" alt="Logo" width="40" style="vertical-align:middle;"> Golf — Jogo de Cartas</h1>
 
 Projeto da disciplina INE5417 — Engenharia de Software I  
-Universidade Federal de Santa Catarina (UFSC)
-Professor: Ricardo Pereira e Silva
+Universidade Federal de Santa Catarina (UFSC)  
+Professor: Ricardo Pereira e Silva  
 Semestre: 2025.1
 
 Desenvolvido pelos alunos do curso de Ciência da Computação:
